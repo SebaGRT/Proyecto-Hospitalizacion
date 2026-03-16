@@ -1,0 +1,3 @@
+Año 2023 tiene formato YYYY-MM-DD
+Año 2024, variable CIP_ENCRIPTADO se llama ID_BENEFICIARIO
+En general, no existe la variable EDAD (se calcula FECHA DE INGRESO - FECHA DE NACIMIENTO)
