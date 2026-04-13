@@ -1,8 +1,14 @@
-"""
-utils.py — Reusable utility functions for Advance 2.
-
-Covers: data loading, variable derivation, filtering, and helper tests.
-"""
+# =============================================================================
+# utils.py — Funciones reutilizables para el Avance 2
+# =============================================================================
+# Contiene toda la lógica compartida entre scripts:
+#   - Carga de archivos GRD
+#   - Derivación de variables analíticas
+#   - Filtrado por grupo diagnóstico
+#   - Limpieza y validación de datos
+#   - Tabla de completitud
+#   - Liberación de memoria
+# =============================================================================
 
 import gc
 import logging
@@ -12,260 +18,352 @@ from typing import Optional, Tuple
 import numpy as np
 import pandas as pd
 
+# Importamos parámetros centralizados desde config.py
 from config import (
-    ALPHA, COL_ADMISSION, COL_BIRTHDATE, COL_DIAG1, COL_DISCHARGE,
-    COL_HOSPITAL, COL_SEVERITY, COL_TIPOALTA, COL_WEIGHT,
-    DATA_DIR, DATA_FILES, MIN_CASES, MORTALITY_VALUE,
-    NEOPLASM_CODES, P99_CUTOFF, PROC_COLS, SEED, SEPSIS_CODES,
+    ALPHA,
+    COL_INGRESO, COL_NACIMIENTO, COL_DIAGNOSTICO, COL_ALTA,
+    COL_HOSPITAL, COL_SEVERIDAD, COL_TIPOALTA, COL_PESO,
+    DIR_DATOS, ARCHIVOS_GRD, MIN_CASOS, VALOR_FALLECIDO,
+    CODIGOS_NEOPLASIA, P99_CUTOFF, COLS_PROCEDIMIENTO, SEMILLA, CODIGOS_SEPSIS,
 )
 
+# Logger para registrar decisiones importantes durante la ejecución
 logger = logging.getLogger(__name__)
 
 
-# ── I/O ───────────────────────────────────────────────────────────────────────
+# =============================================================================
+# CARGA DE DATOS
+# =============================================================================
 
-def load_grd_data(
-    years: Optional[list] = None,
-    usecols: Optional[list] = None,
-    nrows: Optional[int] = None,
+def cargar_datos_grd(
+    años: Optional[list] = None,
+    columnas: Optional[list] = None,
+    nfilas: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Load GRD CSV files into a single DataFrame.
+    """Carga los archivos CSV del GRD Público y los une en un solo DataFrame.
 
-    Parameters
+    Se leen con dtype=str para evitar problemas de inferencia de tipos
+    y minimizar el uso de memoria en la carga inicial.
+
+    Parámetros
     ----------
-    years : list of int, optional
-        Subset of years to load (e.g. [2021, 2022]).  None loads all.
-    usecols : list of str, optional
-        Column names to read.  None reads all.
-    nrows : int, optional
-        Maximum rows per file (for quick testing).
+    años : list de int, opcional
+        Subconjunto de años a cargar (ej. [2021, 2022]). None carga todos.
+    columnas : list de str, opcional
+        Columnas a leer. None lee todas.
+    nfilas : int, opcional
+        Máximo de filas por archivo (útil para pruebas rápidas).
 
-    Returns
+    Retorna
     -------
     pd.DataFrame
-        Concatenated raw data with dtype=str for all columns.
+        Datos crudos concatenados con dtype=str en todas las columnas.
     """
-    files = DATA_FILES
-    if years:
-        files = [f for f in files if any(str(y) in f for y in years)]
+    archivos = ARCHIVOS_GRD
+
+    # Filtrar por años si se especifican
+    if años:
+        archivos = [f for f in archivos if any(str(a) in f for a in años)]
 
     frames = []
-    for fname in files:
-        path = os.path.join(DATA_DIR, fname)
-        if not os.path.exists(path):
-            logger.warning("File not found: %s — skipping", path)
+    for nombre in archivos:
+        ruta = os.path.join(DIR_DATOS, nombre)
+
+        # Verificar existencia antes de intentar leer
+        if not os.path.exists(ruta):
+            logger.warning("Archivo no encontrado: %s — omitiendo", ruta)
             continue
-        logger.info("Loading %s …", fname)
+
+        logger.info("Cargando %s …", nombre)
         df = pd.read_csv(
-            path,
-            sep='|',
-            dtype=str,
-            usecols=usecols,
-            nrows=nrows,
+            ruta,
+            sep='|',          # Separador pipe del GRD
+            dtype=str,        # Todo como string para no perder ceros iniciales
+            usecols=columnas,
+            nrows=nfilas,
             low_memory=False,
         )
         frames.append(df)
 
     if not frames:
-        raise FileNotFoundError("No GRD files found in %s" % DATA_DIR)
+        raise FileNotFoundError("No se encontraron archivos GRD en: %s" % DIR_DATOS)
 
-    result = pd.concat(frames, ignore_index=True)
-    logger.info("Total rows loaded: {:,}".format(len(result)))
-    return result
+    resultado = pd.concat(frames, ignore_index=True)
+    logger.info("Total de filas cargadas: {:,}".format(len(resultado)))
+    return resultado
 
 
-# ── Variable derivation ───────────────────────────────────────────────────────
+# Alias en inglés para compatibilidad con el notebook
+load_grd_data = cargar_datos_grd
 
-def derive_variables(df: pd.DataFrame) -> pd.DataFrame:
-    """Derive analytical variables from raw GRD data.
 
-    Adds columns:
-    - age           : approximate age at admission
-    - days_stay     : length of stay in days
-    - n_procedures  : count of non-null procedure codes
-    - n_unique_proc : count of unique non-null procedure codes
-    - mortality     : 1 if TIPOALTA == 'FALLECIDO', else 0
+# =============================================================================
+# DERIVACIÓN DE VARIABLES
+# =============================================================================
 
-    Parameters
+def derivar_variables(df: pd.DataFrame) -> pd.DataFrame:
+    """Calcula las variables analíticas a partir de los datos crudos del GRD.
+
+    Variables derivadas:
+    - edad          : años cumplidos aproximados al momento del ingreso
+    - dias_estadia  : duración de la hospitalización en días
+    - n_procedimientos : cantidad de procedimientos CIE-9 registrados (no nulos)
+    - n_proc_unicos : cantidad de procedimientos únicos (diversidad de intervención)
+    - mortalidad    : 1 si TIPOALTA == 'FALLECIDO', 0 en caso contrario
+
+    Parámetros
     ----------
     df : pd.DataFrame
-        Raw GRD data with at minimum the expected columns.
+        Datos crudos del GRD con las columnas esperadas.
 
-    Returns
+    Retorna
     -------
     pd.DataFrame
-        DataFrame with new derived columns appended.
+        DataFrame con las nuevas columnas añadidas.
     """
     df = df.copy()
 
-    # Dates
-    df[COL_ADMISSION] = pd.to_datetime(df[COL_ADMISSION], errors='coerce')
-    df[COL_DISCHARGE] = pd.to_datetime(df[COL_DISCHARGE], errors='coerce')
-    df[COL_BIRTHDATE] = pd.to_datetime(df[COL_BIRTHDATE], errors='coerce')
+    # --- Conversión de fechas ---
+    # Necesarias para calcular edad y días de estadía
+    df[COL_INGRESO]    = pd.to_datetime(df[COL_INGRESO],    errors='coerce')
+    df[COL_ALTA]       = pd.to_datetime(df[COL_ALTA],       errors='coerce')
+    df[COL_NACIMIENTO] = pd.to_datetime(df[COL_NACIMIENTO], errors='coerce')
 
-    # Age (approximate years at admission)
-    df['age'] = df[COL_ADMISSION].dt.year - df[COL_BIRTHDATE].dt.year
+    # --- Edad aproximada (años) ---
+    # Diferencia de años entre fecha de ingreso y fecha de nacimiento
+    # Es una aproximación: no considera si ya pasó el cumpleaños en el año de ingreso
+    df['edad'] = df[COL_INGRESO].dt.year - df[COL_NACIMIENTO].dt.year
 
-    # Length of stay
-    df['days_stay'] = (df[COL_DISCHARGE] - df[COL_ADMISSION]).dt.days
+    # --- Días de estadía ---
+    # Alta - Ingreso en días naturales
+    df['dias_estadia'] = (df[COL_ALTA] - df[COL_INGRESO]).dt.days
 
-    # Procedure counts — only columns present in the DataFrame
-    proc_present = [c for c in PROC_COLS if c in df.columns]
-    proc_df = df[proc_present].replace('', np.nan)
-    df['n_procedures']    = proc_df.notna().sum(axis=1)
-    df['n_unique_proc']   = proc_df.apply(lambda row: row.dropna().nunique(), axis=1)
+    # --- Número de procedimientos registrados ---
+    # Solo se cuentan las columnas PROCEDIMIENTO1 a PROCEDIMIENTO30 que estén presentes
+    cols_proc_presentes = [c for c in COLS_PROCEDIMIENTO if c in df.columns]
+    df_proc = df[cols_proc_presentes].replace('', np.nan)  # Celdas vacías → NaN
+    df['n_procedimientos'] = df_proc.notna().sum(axis=1)
 
-    # Mortality
-    df['mortality'] = (df[COL_TIPOALTA].str.strip() == MORTALITY_VALUE).astype(int)
+    # --- Número de procedimientos únicos ---
+    # Diversidad de tipos de procedimiento (evita contar duplicados)
+    df['n_proc_unicos'] = df_proc.apply(
+        lambda fila: fila.dropna().nunique(), axis=1
+    )
 
-    logger.info("Variables derived: age, days_stay, n_procedures, n_unique_proc, mortality")
+    # --- Mortalidad (variable binaria 0/1) ---
+    # 1 = el paciente falleció durante la hospitalización
+    df['mortalidad'] = (
+        df[COL_TIPOALTA].str.strip() == VALOR_FALLECIDO
+    ).astype(int)
+
+    logger.info("Variables derivadas: edad, dias_estadia, n_procedimientos, n_proc_unicos, mortalidad")
     return df
 
 
-# ── Filtering / cleaning ──────────────────────────────────────────────────────
+# Alias en inglés para compatibilidad con el notebook
+derive_variables = derivar_variables
 
-def filter_diagnostic_groups(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Split DataFrame into neoplasm and sepsis diagnostic groups.
 
-    Filters on DIAGNOSTICO1 starting with the defined ICD-10 prefixes.
-    Creates a 'diagnostic_group' column.
+# =============================================================================
+# FILTRADO POR GRUPO DIAGNÓSTICO
+# =============================================================================
 
-    Parameters
+def filtrar_grupos_diagnosticos(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Separa el DataFrame en dos grupos según el diagnóstico principal (DIAGNOSTICO1).
+
+    Criterio de selección:
+    - Neoplasias: DIAGNOSTICO1 comienza con C50, C18, C19, C20, C53 o C34
+    - Sepsis: DIAGNOSTICO1 comienza con A40 o A41
+
+    Se agrega la columna 'grupo_diagnostico' para identificar el grupo.
+
+    Parámetros
     ----------
     df : pd.DataFrame
+        DataFrame con la columna DIAGNOSTICO1 presente.
 
-    Returns
+    Retorna
     -------
     Tuple[pd.DataFrame, pd.DataFrame]
-        (df_neoplasm, df_sepsis)
+        (df_neoplasia, df_sepsis)
     """
-    diag = df[COL_DIAG1].str.strip().str.upper()
+    # Normalizar: quitar espacios y convertir a mayúsculas
+    diagnostico = df[COL_DIAGNOSTICO].str.strip().str.upper()
 
-    neo_mask = diag.str.startswith(tuple(NEOPLASM_CODES))
-    sep_mask = diag.str.startswith(tuple(SEPSIS_CODES))
+    # Crear máscaras booleanas para cada grupo
+    mascara_neo = diagnostico.str.startswith(tuple(CODIGOS_NEOPLASIA))
+    mascara_sep = diagnostico.str.startswith(tuple(CODIGOS_SEPSIS))
 
-    df_neo = df[neo_mask].copy()
-    df_neo['diagnostic_group'] = 'neoplasm'
+    df_neo = df[mascara_neo].copy()
+    df_neo['grupo_diagnostico'] = 'neoplasia'
 
-    df_sep = df[sep_mask].copy()
-    df_sep['diagnostic_group'] = 'sepsis'
+    df_sep = df[mascara_sep].copy()
+    df_sep['grupo_diagnostico'] = 'sepsis'
 
     logger.info(
-        "Diagnostic split — Neoplasm: {:,} | Sepsis: {:,}".format(len(df_neo), len(df_sep))
+        "Separación diagnóstica — Neoplasia: {:,} registros | Sepsis: {:,} registros".format(
+            len(df_neo), len(df_sep)
+        )
     )
     return df_neo, df_sep
 
 
-def clean_data(df: pd.DataFrame, group_label: str = '') -> pd.DataFrame:
-    """Apply standard data-quality filters.
+# Alias en inglés para compatibilidad con el notebook
+filter_diagnostic_groups = filtrar_grupos_diagnosticos
 
-    Steps (with row counts logged after each):
-    1. Drop records with empty COD_HOSPITAL.
-    2. Drop records with empty IR_29301_SEVERIDAD (GRD severity).
-    3. Drop records with days_stay < 0.
-    4. Remove outliers: days_stay > 99th percentile within this group.
-    5. Convert severity and weight to numeric.
-    6. Keep only hospital-diagnosis groups with >= MIN_CASES unique records.
 
-    Parameters
+# =============================================================================
+# LIMPIEZA Y VALIDACIÓN
+# =============================================================================
+
+def limpiar_datos(df: pd.DataFrame, etiqueta: str = '') -> pd.DataFrame:
+    """Aplica los filtros de calidad documentados para el Avance 2.
+
+    Pasos de limpieza (con registro del impacto en número de filas):
+    1. Eliminar registros sin COD_HOSPITAL (no asignables a ningún hospital)
+    2. Eliminar registros sin IR_29301_SEVERIDAD (covariate clave en los modelos)
+    3. Eliminar registros con dias_estadia < 0 (error de datos: alta antes de ingreso)
+    4. Eliminar outliers: dias_estadia > P99 (valores extremos distorsionan modelos)
+    5. Convertir severidad y peso a numérico; descartar 'DESCONOCIDO' tras coerción
+    6. Descartar hospitales con < MIN_CASOS registros (poder estadístico insuficiente)
+
+    Parámetros
     ----------
     df : pd.DataFrame
-    group_label : str
-        Label for logging (e.g. 'neoplasm').
+    etiqueta : str
+        Nombre del grupo (ej. 'neoplasia') para el registro de logs.
 
-    Returns
+    Retorna
     -------
     pd.DataFrame
-        Cleaned DataFrame.
+        DataFrame limpio y listo para análisis.
     """
     n0 = len(df)
-    lbl = group_label or 'data'
+    lbl = etiqueta or 'datos'
 
-    # 1. Empty hospital
+    # PASO 1: Eliminar registros sin hospital
+    # Razón: el hospital es la variable de agrupación principal (H1) y el
+    # efecto fijo en los modelos H2 y H3. Sin él, el registro es inutilizable.
     df = df[df[COL_HOSPITAL].notna() & (df[COL_HOSPITAL].str.strip() != '')]
-    logger.info("[%s] After drop empty hospital: {:,} (removed {:,})".format(len(df), n0 - len(df)) % lbl)
     n1 = len(df)
+    logger.info("[%s] Paso 1 — Sin hospital: {:,} filas (eliminadas: {:,})".format(n1, n0 - n1) % lbl)
 
-    # 2. Empty GRD severity
-    df = df[df[COL_SEVERITY].notna() & (df[COL_SEVERITY].str.strip() != '')]
-    logger.info("[%s] After drop empty severity: {:,} (removed {:,})".format(len(df), n1 - len(df)) % lbl)
+    # PASO 2: Eliminar registros sin severidad GRD
+    # Razón: IR_29301_SEVERIDAD es covariable de control en todos los modelos.
+    # Sin ella no se puede controlar por complejidad del caso.
+    df = df[df[COL_SEVERIDAD].notna() & (df[COL_SEVERIDAD].str.strip() != '')]
     n2 = len(df)
+    logger.info("[%s] Paso 2 — Sin severidad: {:,} filas (eliminadas: {:,})".format(n2, n1 - n2) % lbl)
 
-    # 3. Negative days_stay
-    df = df[df['days_stay'] >= 0]
-    logger.info("[%s] After drop days_stay<0: {:,} (removed {:,})".format(len(df), n2 - len(df)) % lbl)
+    # PASO 3: Eliminar dias_estadia negativos
+    # Razón: alta antes del ingreso es un error de codificación, no un caso real.
+    df = df[df['dias_estadia'] >= 0]
     n3 = len(df)
+    logger.info("[%s] Paso 3 — dias_estadia < 0: {:,} filas (eliminadas: {:,})".format(n3, n2 - n3) % lbl)
 
-    # 4. Outlier removal: days_stay > p99
-    p99 = np.percentile(df['days_stay'].dropna(), P99_CUTOFF)
-    df = df[df['days_stay'] <= p99]
-    logger.info("[%s] After drop days_stay>p99 (%.1f): {:,} (removed {:,})".format(len(df), n3 - len(df)) % (lbl, p99))
-
-    # 5. Numeric conversions
-    df[COL_SEVERITY] = pd.to_numeric(df[COL_SEVERITY], errors='coerce')
-    df[COL_WEIGHT]   = pd.to_numeric(df[COL_WEIGHT],   errors='coerce')
-    df['age']        = pd.to_numeric(df['age'],         errors='coerce')
-
-    # Drop rows where severity became NaN after coercion (e.g. 'DESCONOCIDO')
-    df = df[df[COL_SEVERITY].notna()]
-
-    # 6. Minimum cases per hospital
-    counts = df.groupby(COL_HOSPITAL)['days_stay'].count()
-    valid_hospitals = counts[counts >= MIN_CASES].index
-    n_before = len(df)
-    df = df[df[COL_HOSPITAL].isin(valid_hospitals)]
+    # PASO 4: Eliminar outliers de estadía (percentil 99)
+    # Razón: estadías muy prolongadas (p.ej. meses en UCI) corresponden a casos
+    # clínicamente distintos de una hospitalización típica y distorsionan los
+    # coeficientes de regresión. Se usa P99 por grupo para respetar diferencias
+    # entre neoplasias (electivas, estadías más largas) y sepsis (urgencias).
+    p99 = np.percentile(df['dias_estadia'].dropna(), P99_CUTOFF)
+    df = df[df['dias_estadia'] <= p99]
+    n4 = len(df)
     logger.info(
-        "[%s] After min_cases filter (>=%d): {:,} (removed {:,}), hospitals: %d".format(
-            len(df), n_before - len(df)
-        ) % (lbl, MIN_CASES, len(valid_hospitals))
+        "[%s] Paso 4 — dias_estadia > p99 (%.1f días): {:,} filas (eliminadas: {:,})".format(
+            n4, n3 - n4
+        ) % (lbl, p99)
     )
 
-    # Use category dtype for hospital to save memory
-    df[COL_HOSPITAL] = df[COL_HOSPITAL].astype('category')
-    df[COL_SEVERITY] = df[COL_SEVERITY].astype('category')
+    # PASO 5: Convertir columnas numéricas y eliminar valores no numéricos
+    # 'DESCONOCIDO' en severidad se convierte a NaN y se descarta
+    df[COL_SEVERIDAD] = pd.to_numeric(df[COL_SEVERIDAD], errors='coerce')
+    df[COL_PESO]      = pd.to_numeric(df[COL_PESO],      errors='coerce')
+    df['edad']        = pd.to_numeric(df['edad'],         errors='coerce')
+    df = df[df[COL_SEVERIDAD].notna()]
+    n5 = len(df)
+    logger.info("[%s] Paso 5 — Severidad no numérica: {:,} filas (eliminadas: {:,})".format(n5, n4 - n5) % lbl)
+
+    # PASO 6: Mantener solo hospitales con suficientes casos
+    # Razón: los efectos fijos por hospital requieren varianza intra-hospital
+    # adecuada. Hospitales con muy pocos casos producen estimaciones inestables
+    # y aumentan el error tipo I en las comparaciones post-hoc.
+    conteos = df.groupby(COL_HOSPITAL)['dias_estadia'].count()
+    hospitales_validos = conteos[conteos >= MIN_CASOS].index
+    n_antes = len(df)
+    df = df[df[COL_HOSPITAL].isin(hospitales_validos)]
+    logger.info(
+        "[%s] Paso 6 — Mínimo %d casos: {:,} filas (eliminadas: {:,}), hospitales válidos: %d".format(
+            len(df), n_antes - len(df)
+        ) % (lbl, MIN_CASOS, len(hospitales_validos))
+    )
+
+    # Optimización de memoria: convertir variables categóricas repetidas
+    df[COL_HOSPITAL]  = df[COL_HOSPITAL].astype('category')
+    df[COL_SEVERIDAD] = df[COL_SEVERIDAD].astype('category')
 
     return df.reset_index(drop=True)
 
 
-# ── Completeness ──────────────────────────────────────────────────────────────
+# Alias en inglés para compatibilidad con el notebook
+clean_data = limpiar_datos
 
-def completeness_table(df: pd.DataFrame, group_label: str = '') -> pd.DataFrame:
-    """Compute % completeness for each column.
 
-    Parameters
+# =============================================================================
+# TABLA DE COMPLETITUD
+# =============================================================================
+
+def tabla_completitud(df: pd.DataFrame, etiqueta: str = '') -> pd.DataFrame:
+    """Calcula el porcentaje de completitud para cada columna del DataFrame.
+
+    Parámetros
     ----------
     df : pd.DataFrame
-    group_label : str
+    etiqueta : str
+        Nombre del grupo diagnóstico para identificar la tabla.
 
-    Returns
+    Retorna
     -------
     pd.DataFrame
-        Table with columns: variable, n_total, n_missing, pct_complete.
+        Tabla con columnas: variable, grupo, n_total, n_faltantes, pct_completo.
     """
     n = len(df)
-    records = []
+    filas = []
     for col in df.columns:
-        missing = df[col].isna().sum() + (df[col].astype(str).str.strip() == '').sum()
-        missing = min(missing, n)  # safety cap
-        records.append({
+        # Contar tanto NaN como strings vacíos como "faltantes"
+        faltantes = df[col].isna().sum() + (df[col].astype(str).str.strip() == '').sum()
+        faltantes = min(int(faltantes), n)  # No puede superar el total
+        filas.append({
             'variable':    col,
-            'group':       group_label,
+            'grupo':       etiqueta,
             'n_total':     n,
-            'n_missing':   int(missing),
-            'pct_complete': round(100 * (n - missing) / n, 1),
+            'n_faltantes': faltantes,
+            'pct_completo': round(100 * (n - faltantes) / n, 1),
         })
-    return pd.DataFrame(records)
+    return pd.DataFrame(filas)
 
 
-# ── Memory helpers ─────────────────────────────────────────────────────────────
+# Alias en inglés para compatibilidad con el notebook
+completeness_table = tabla_completitud
 
-def free_memory(*dfs) -> None:
-    """Delete DataFrames and call gc.collect().
 
-    Parameters
+# =============================================================================
+# GESTIÓN DE MEMORIA
+# =============================================================================
+
+def liberar_memoria(*dfs) -> None:
+    """Elimina DataFrames y fuerza la recolección de basura.
+
+    Útil después de operaciones que generan grandes DataFrames intermedios.
+
+    Parámetros
     ----------
-    *dfs : DataFrames to delete.
+    *dfs : DataFrames a eliminar.
     """
     for df in dfs:
         del df
     gc.collect()
+
+
+# Alias en inglés para compatibilidad con el notebook
+free_memory = liberar_memoria
