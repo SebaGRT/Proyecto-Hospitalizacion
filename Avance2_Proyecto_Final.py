@@ -58,6 +58,7 @@
 # | `severidad_grd` | Numérica (int) | Nivel de severidad GRD (1–4). |
 # | `peso_grd` | Numérica (float) | Peso relativo del GRD (proxy de consumo de recursos). |
 # | `hospital` | Categórica (int) | Código del establecimiento (`COD_HOSPITAL`). |
+# | `hospital_nombre` | Categórica (string) | Nombre del establecimiento de salud (mapeado desde `HospitalesGRD.xlsx`). |
 # | `tipo_ingreso` | Categórica (string) | Motivo de ingreso (URGENCIA, PROGRAMADA, OBSTETRICA). |
 # | `tipo_alta` | Categórica (string) | Condición de egreso (FALLECIDO, DOMICILIO, etc.). |
 
@@ -84,6 +85,23 @@ cols_uso = [
 ]
 
 df_raw = pd.read_csv(DATA_PATH, usecols=cols_uso, low_memory=False)
+
+# ── Mapeo de códigos de hospital a nombres (para tablas; gráficos usan códigos) ──
+HOSP_PATH = Path('DATASET INICIAL') / 'HospitalesGRD.xlsx'
+if HOSP_PATH.exists():
+    hosp_excel = pd.read_excel(HOSP_PATH)
+    hosp_excel.columns = ['codigo', 'nombre']
+    hosp_excel['codigo'] = hosp_excel['codigo'].astype(int)
+    mapa_hospital = dict(zip(hosp_excel['codigo'], hosp_excel['nombre']))
+    # Conservar código numérico en 'hospital' (usado en gráficos y análisis)
+    # Crear columna aparte con el nombre completo para tablas/CSV
+    df_raw['hospital_nombre'] = df_raw['hospital'].map(lambda x: mapa_hospital.get(int(x), str(int(x))) if pd.notna(x) else x)
+    print(f'Mapeo de hospitales cargado: {len(mapa_hospital):,} establecimientos.')
+    n_mapeados = df_raw['hospital_nombre'].notna().sum()
+    print(f'Registros con nombre de hospital: {n_mapeados:,}')
+else:
+    df_raw['hospital_nombre'] = df_raw['hospital'].astype(str)
+    print(f'Advertencia: No se encontró {HOSP_PATH}. Se usan códigos numéricos.')
 
 print(f'Dataset cargado: {DATA_PATH}')
 print(f'Observaciones totales: {len(df_raw):,}')
@@ -286,12 +304,15 @@ print(f'Registros en subconjunto EDA: {len(df_eda):,}')
 # ── BOXPLOT: Días de estadía × Hospital (C16.*) ───────────────────────────
 orden = df_eda.groupby('hospital')['dias_estada'].median().sort_values(ascending=False).index
 
-fig, ax = plt.subplots(figsize=(14, 7))
+fig, ax = plt.subplots(figsize=(16, 6))
 sns.boxplot(x='hospital', y='dias_estada', data=df_eda, order=orden,
             palette='Spectral', showfliers=False, ax=ax)
 ax.set_title('Distribución de Días de Estadía por Hospital\n(Diagnóstico controlado: C16.* — Cáncer Gástrico)')
 ax.set_xlabel('Código Hospital'); ax.set_ylabel('Días de Estadía')
 ax.tick_params(axis='x', rotation=45)
+for label in ax.get_xticklabels():
+    label.set_ha('right')
+    label.set_fontsize(8)
 plt.tight_layout()
 plt.savefig('outputs/graficos/boxplot_dias_hospital_C16.png', dpi=150, bbox_inches='tight')
 plt.show()
@@ -303,15 +324,18 @@ plt.show()
 # ── BARPLOT: Tasa de mortalidad intrahospitalaria × Hospital (C16.*) ─────
 mort_hosp = df_eda.groupby('hospital')['mortalidad_int'].mean().sort_values(ascending=False)
 
-fig, ax = plt.subplots(figsize=(14, 6))
+fig, ax = plt.subplots(figsize=(14, 5))
 sns.barplot(x=mort_hosp.index.astype(str), y=mort_hosp.values*100, palette='Reds_r', ax=ax)
 ax.set_title('Tasa de Mortalidad Intrahospitalaria por Hospital (C16.*)')
 ax.set_xlabel('Código Hospital'); ax.set_ylabel('Mortalidad (%)')
 ax.tick_params(axis='x', rotation=45)
+for label in ax.get_xticklabels():
+    label.set_ha('right')
+    label.set_fontsize(8)
 for p in ax.patches:
     ax.annotate(f'{p.get_height():.1f}%',
                 (p.get_x() + p.get_width()/2., p.get_height()),
-                ha='center', va='bottom', fontsize=9)
+                ha='center', va='bottom', fontsize=7)
 plt.tight_layout()
 plt.savefig('outputs/graficos/barplot_mortalidad_hospital_C16.png', dpi=150, bbox_inches='tight')
 plt.show()
@@ -323,15 +347,18 @@ plt.show()
 # ── BARPLOT: Promedio de procedimientos × Hospital (C16.*) ────────────────
 proc_hosp = df_eda.groupby('hospital')['cantidad_procedimientos'].mean().sort_values(ascending=False)
 
-fig, ax = plt.subplots(figsize=(14, 6))
+fig, ax = plt.subplots(figsize=(14, 5))
 sns.barplot(x=proc_hosp.index.astype(str), y=proc_hosp.values, palette='Blues_r', ax=ax)
 ax.set_title('Promedio de Procedimientos por Hospital (C16.*)')
 ax.set_xlabel('Código Hospital'); ax.set_ylabel('Procedimientos promedio')
 ax.tick_params(axis='x', rotation=45)
+for label in ax.get_xticklabels():
+    label.set_ha('right')
+    label.set_fontsize(8)
 for p in ax.patches:
     ax.annotate(f'{p.get_height():.1f}',
                 (p.get_x() + p.get_width()/2., p.get_height()),
-                ha='center', va='bottom', fontsize=9)
+                ha='center', va='bottom', fontsize=7)
 plt.tight_layout()
 plt.savefig('outputs/graficos/barplot_procedimientos_hospital_C16.png', dpi=150, bbox_inches='tight')
 plt.show()
@@ -352,6 +379,10 @@ tabla_hosp = df_eda.groupby('hospital').agg(
     edad_media=('edad','mean'),
     severidad_moda=('severidad_grd', lambda x: x.mode()[0] if not x.mode().empty else np.nan)
 ).round(2).sort_values('dias_media', ascending=False)
+
+# Agregar nombre completo del hospital para referencia
+mapa_nombre = df_eda.drop_duplicates('hospital').set_index('hospital')['hospital_nombre'].to_dict()
+tabla_hosp.insert(0, 'hospital_nombre', tabla_hosp.index.map(mapa_nombre))
 
 display(tabla_hosp)
 tabla_hosp.to_csv('outputs/tablas/tabla_descriptiva_hospital_C16.csv')
@@ -465,6 +496,10 @@ tabla_var = tabla_var.sort_values('varianza', ascending=False)
 tabla_var.insert(0, 'rank', range(1, len(tabla_var) + 1))
 tabla_var['idh_comunal_2024'] = pd.to_numeric(tabla_var['idh_comunal_2024'], errors='coerce')
 tabla_var = tabla_var.drop(columns=['comuna_norm', 'region_norm']).round(3)
+
+# Agregar nombre completo del hospital para referencia
+mapa_nombre_var = df_eda.drop_duplicates('hospital').set_index('hospital')['hospital_nombre'].to_dict()
+tabla_var.insert(1, 'hospital_nombre', tabla_var['hospital'].map(mapa_nombre_var))
 
 display(tabla_var.head(20))
 tabla_var.to_csv('outputs/tablas/03_varianza_por_hospital.csv', index=False)
@@ -815,9 +850,11 @@ print(f'  V de Cramér = {v_C:.4f}  → efecto {ef_C}')
 print('\nResiduos estandarizados (|r| > 2 → contribución relevante):')
 display(resid_C.round(2))
 
-fig, ax = plt.subplots(figsize=(12, 6))
+fig, ax = plt.subplots(figsize=(10, 7))
 sns.heatmap(resid_C, annot=True, fmt='.2f', cmap='RdBu_r', center=0, vmin=-8, vmax=8, linewidths=0.5, ax=ax)
 ax.set_title(f'Residuos estandarizados: tipo de alta × hospital (top 10)\nχ²({dof_C}) = {chi2_C:.2f}, p {fmt_p(p_C)}, V = {v_C:.3f}')
+ax.set_yticklabels(ax.get_yticklabels(), rotation=0, fontsize=9)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize=9)
 plt.tight_layout()
 plt.savefig('outputs/inferencial/cat_C_residuos_tipoalta_hospital.png', dpi=150, bbox_inches='tight')
 plt.show()
@@ -914,6 +951,8 @@ if res_kw['p'] < ALPHA:
     sns.heatmap(p_matrix.astype(float), mask=mask_diag, cmap='RdYlGn_r', vmin=0, vmax=0.1,
                 annot=True, fmt='.3f', linewidths=0.5, ax=ax)
     ax.set_title('p-valores ajustados (Dunn-Bonferroni) — C16.*\nVerde = no sig. · Rojo = sig. (p_adj < 0.05)', fontsize=11)
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize=9)
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0, fontsize=9)
     plt.tight_layout()
     plt.savefig('outputs/inferencial/h1_dunn_heatmap_C16.png', dpi=150, bbox_inches='tight')
     plt.show()
