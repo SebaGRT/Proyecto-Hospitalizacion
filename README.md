@@ -78,25 +78,64 @@ pip install pandas numpy matplotlib seaborn scipy statsmodels scikit-learn
 
 ```
 Proyecto-Hospitalizacion/
-├── Avance2_Proyecto_Final.ipynb      # Notebook principal con análisis completo (EDA + inferencia)
-├── Avance2_Proyecto_Final.py         # Exportación Python del notebook principal
-├── DATASET INICIAL/                  # Dataset limpio y archivos auxiliares
-│   ├── GRD_Limpio.csv                # Dataset principal (~454k registros)
-│   ├── df_clean_final_2019_2024.csv  # Dataset alternativo limpio
-│   ├── idh_comunas_2024.csv          # Datos socioeconómicos (IDH comunal)
-│   ├── CIE-10-filtrado.ipynb         # Notebook de filtrado de códigos CIE-10
-│   └── ...
-├── DATASET-PROBLEMA8/                # Datasets originales GRD por año (2019–2024)
-├── Avance 1/                         # Notebooks y archivos del primer avance
-├── Avance 2/                         # Notebooks y outputs del segundo avance
-├── outputs/                          # Gráficos y tablas generados
-│   ├── graficos/                     # Visualizaciones EDA
-│   └── inferencial/                  # Resultados de tests de hipótesis
-├── Referencias/                      # Documentos de referencia y notebooks guía
-├── docs/                             # Documentos del proyecto (presentaciones, informes)
-├── theme_early_graphs.py             # Script de tematización de gráficos
-├── upgrade_graphs.py                 # Script de actualización de figuras del notebook
-└── feedback_avance2.md               # Retroalimentación del segundo avance
+├── Avance2_Proyecto_Final.ipynb              # Notebook principal con análisis completo (EDA + inferencia)
+├── Avance2_Proyecto_Final.py                 # Exportación Python del notebook principal
+├── codigos_C00_D49.txt                       # Lista de códigos CIE-10 oncológicos usados en el filtro
+├── feedback_avance2.md                       # Retroalimentación del segundo avance
+├── theme_early_graphs.py                     # Script de tematización de gráficos
+├── upgrade_graphs.py                         # Script de actualización de figuras del notebook
+├── Avance 1/                                 # Notebooks y archivos del primer avance
+│   ├── EDA_Egresos_Hospitalarios_Chile.ipynb
+│   ├── EDA_Egresos_Hospitalarios_Chile (Cargado).ipynb
+│   ├── Estimacion_Estadistica (1).ipynb
+│   ├── Proyecto-Hospitales.ipynb
+│   ├── unir_grd_fonasa.ipynb
+│   ├── nuevas_celdas_analisis.ipynb
+│   ├── test_sample_utf8_load.py
+│   ├── instrucciones.txt
+│   └── codigos_C00_D49.txt
+├── Avance 2/                                 # Notebook y outputs del segundo avance
+│   ├── Avance2_Proyecto_Final.ipynb
+│   └── outputs/
+│       ├── graficos/
+│       ├── tablas/
+│       └── inferencial/
+├── DATASET INICIAL/                          # Dataset limpio y archivos auxiliares
+│   ├── GRD_Limpio.csv                        # Dataset principal (~454k registros)
+│   ├── df_clean_final_2019_2024.csv          # Dataset alternativo limpio
+│   ├── idh_comunas_2024.csv                  # Datos socioeconómicos (IDH comunal)
+│   ├── HospitalesGRD.xlsx                    # Mapeo de códigos a nombres de hospitales
+│   ├── comunas-regiones.json                 # Mapeo comunas-regiones
+│   ├── regiones-provincias.json              # Mapeo regiones-provincias
+│   ├── CIE-10-filtrado.ipynb                 # Notebook de filtrado de códigos CIE-10
+│   └── codigos_C00_D49.txt                   # Lista de códigos CIE-10 oncológicos
+├── DATASET-PROBLEMA8/                        # Datasets originales GRD por año (2019–2024)
+│   ├── GRD_PUBLICO_2019.csv
+│   ├── GRD_PUBLICO_2020.csv
+│   ├── GRD_PUBLICO_2021.csv
+│   ├── GRD_PUBLICO_EXTERNO_2022.csv
+│   ├── GRD_PUBLICO_2023.csv
+│   ├── GRD_PUBLICO_2024.csv
+│   ├── CIE-10.xlsx
+│   ├── Lista-Tabular-CIE-10-1-1.xls
+│   └── utf8/                                 # Versiones en UTF-8 de los CSV anuales
+├── Documentos/                               # Documentos del proyecto (presentaciones e informes)
+│   ├── Avance1_Presentacion.pdf
+│   ├── Avance1_AmatHerreraRodríguez.pdf
+│   ├── Reporte_Avance2_Final.docx
+│   └── Reporte_Avance2_Final.pdf
+├── outputs/                                  # Gráficos y tablas generados (raíz)
+│   ├── graficos/                             # Visualizaciones EDA
+│   ├── tablas/                               # Tablas descriptivas exportadas
+│   └── inferencial/                          # Resultados de tests de hipótesis
+├── Referencias/                              # Documentos de referencia y notebooks guía
+│   ├── Requerimientos_Avance2_Analisis_de_Datos_fecha_entrega.pdf
+│   ├── documento-contexto.md
+│   ├── Notebook_Final_Regresion_Hospitalizaciones.ipynb
+│   ├── notebook_tests_categoricos_GRD (1).ipynb
+│   └── Clase 19-21 - Metodos Numericos.ipynb
+└── Test Estadístico Planteado/               # Pruebas estadísticas preliminares
+    └── outputs/
 ```
 
 ---
