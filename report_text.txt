@@ -1,0 +1,660 @@
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+Universidad del Desarrollo 
+Facultad de Ingeniería 
+Análisis de Datos e Inferencia Estadística 
+SEGUNDO AVANCE DE PROYECTO 
+Variabilidad en el Tratamiento Oncológico y sus Efectos sobre la Mortalidad y la 
+Estadía Hospitalaria en el Sistema Público Chileno 
+Integrantes: 
+Vicente Amat 
+José Tomás Herrera 
+Sebastián Rodríguez 
+Profesora: Karen Oróstica 
+Ayudante: David Hernández 
+Fecha de entrega: 8 de mayo de 2026 
+ 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 1 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+1. Introducción y pregunta de investigación 
+El cáncer es la segunda causa de muerte en Chile, y dentro de los tumores digestivos el cáncer 
+gástrico (CIE-10: C16) ocupa los primeros lugares en incidencia y mortalidad dentro del sistema 
+público de salud (MINSAL, 2024). Para nuestro grupo, el interés inicial por este tema nació al 
+revisar las bases de datos GRD y notar algo que, en principio, no debería ocurrir: pacientes con 
+el mismo diagnóstico oncológico atendidos en distintos hospitales mostraban desenlaces 
+sustancialmente diferentes en términos de estadía, procedimientos y mortalidad. Esa 
+observación inicial, aparentemente menor, fue lo que terminó dando forma a la pregunta de 
+investigación de este proyecto. 
+La literatura internacional (Wennberg & Gittelsohn, 1973; Munir et al., 2024) ha documentado 
+este fenómeno bajo el nombre de variabilidad clínica injustificada, entendido como la diferencia 
+en práctica médica que no se explica por el cuadro clínico del paciente, sino por características 
+del establecimiento o del prestador. Cuando esta variabilidad es persistente y de magnitud 
+relevante, deja de ser una curiosidad estadística y se convierte en un problema de equidad: 
+implica que el lugar donde un paciente accede al sistema influye en su tratamiento y, 
+potencialmente, en su pronóstico. Para un sistema público que atiende a la mayoría de los 
+chilenos, esta es una pregunta con consecuencias concretas. 
+Sobre esa base, este Avance 2 formula la siguiente pregunta de investigación: 
+¿En qué medida el hospital de atención determina los días de estadía, la 
+cantidad de procedimientos y la mortalidad intrahospitalaria en pacientes con 
+cáncer gástrico (C16.*) del sistema público chileno, controlando por 
+características clínicas como severidad, peso GRD, edad y comorbilidad? 
+La hipótesis general de trabajo es que, incluso después de ajustar por las variables clínicas 
+disponibles, persiste un efecto institucional significativo, es decir, que el hospital importa por sí 
+mismo. Para evaluar esta hipótesis general, decidimos descomponerla en tres pruebas estadísticas 
+concretas y operacionalizables, que se resumen en la Tabla 1. La estructura de tres hipótesis nos 
+permitió cubrir las tres dimensiones que más nos interesaba contrastar: la variabilidad 
+procedimental (H₁), su relación con un desenlace duro como la mortalidad (H₂), y su impacto 
+sobre el uso de recursos a través de los días de estadía (H₃). 
+Hipóte
+sis 
+Enunciado 
+Test estadístico 
+H₁ 
+La distribución de procedimientos difiere entre hospitales para C16.* 
+Kruskal-Wallis + 
+Dunn-Bonferroni 
+H₂ 
+Los procedimientos se asocian con mortalidad, controlando por 
+severidad y hospital. 
+Regresión logística múltiple 
+H₃ 
+Los procedimientos predicen los días de estadía, controlando por 
+severidad y hospital. 
+OLS múltiple con errores HC3 
+Tabla 1. Hipótesis del estudio. Nivel de significancia α = 0,05 en los tres contrastes. 
+El dataset GRD permite abordar esta pregunta porque cubre seis años (2019–2024), incluye 
+prácticamente la totalidad de los egresos del sistema público y, lo más importante, vincula cada 
+egreso con un código CIE-10 específico, una clasificación de severidad GRD estandarizada y un 
+peso relativo. Es decir, podemos comparar pacientes con cuadros equivalentes dentro de la 
+categoría C16.*, y así aislar el efecto del establecimiento. 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 2 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+2. Descripción del dataset 
+2.1 Origen, naturaleza y unidad de análisis 
+Trabajamos con la base GRD Público MINSAL/FONASA, un sistema de codificación 
+administrativo que el Ministerio de Salud aplica a los egresos hospitalarios del sistema público 
+desde la implementación del modelo GRD-IR (Grupos Relacionados por el Diagnóstico, versión 
+IR-DRG). Cada egreso queda registrado con su diagnóstico principal en CIE-10, hasta 30 
+diagnósticos secundarios, hasta 30 procedimientos, y un conjunto de variables administrativas 
+(fechas, tipo de ingreso, tipo de alta) y clínicas (severidad y peso GRD). El archivo se publica 
+anualmente y nosotros consolidamos seis años (2019, 2020, 2021, 2022, 2023, 2024) en una sola 
+tabla maestra. 
+El tipo de datos es administrativo-clínico, transversal por egreso, aunque con cobertura temporal 
+multianual. La unidad de análisis es el egreso hospitalario, no el paciente único: una persona 
+que se hospitalice tres veces en el período aparece tres veces en la base. Esta decisión es 
+importante porque condiciona la interpretación: nuestros estadísticos describen episodios de 
+hospitalización, no trayectorias individuales. Para algunos análisis (por ejemplo, mortalidad 
+acumulada por persona) habría que cambiar de unidad, pero para evaluar la variabilidad 
+institucional —que es la pregunta de este proyecto— la unidad correcta es el egreso, ya que cada 
+uno representa una decisión clínica específica del establecimiento. 
+Tras consolidar los seis archivos anuales, la base inicial sumaba aproximadamente 14 millones 
+de egresos a nivel nacional. Aplicando el filtro oncológico (capítulo II del CIE-10, códigos 
+C00–D49), la cifra se redujo a 457.717 egresos. Después de las decisiones de limpieza descritas 
+en la Sección 3, el conjunto analítico final quedó con 418.572 egresos oncológicos (universo 
+C00–D49) y un subconjunto focal de 17.335 egresos de cáncer gástrico (C16.*). De las 
+aproximadamente 145 variables originales, retuvimos las 14 que efectivamente usamos en los 
+análisis (Tabla 2). El resto correspondía a campos administrativos redundantes, identificadores 
+internos o variables con cobertura inconsistente entre años. 
+2.2 Variable dependiente, predictores y glosario 
+La pregunta de investigación nos llevó a trabajar con dos variables dependientes en paralelo. 
+Para los modelos de regresión sobre estadía hospitalaria (H₃), la variable de respuesta es 
+log_dias_estada = log(1 + dias_estada). La transformación logarítmica fue una decisión 
+metodológica deliberada: la distribución original de días de estadía mostraba una asimetría 
+positiva fuerte (skew ≈ 1,63), con cola larga hacia hospitalizaciones extensas. Aplicar log1p 
+redujo el sesgo a −0,32 y permitió que los residuos del modelo OLS se aproximaran 
+razonablemente a la normalidad. Como bonus, los coeficientes ahora se interpretan como 
+semi-elasticidades, es decir, cambios porcentuales en estadía, lo que es mucho más útil 
+clínicamente que un cambio en días absolutos. Para el modelo logístico de mortalidad (H₂), la 
+variable dependiente es mortalidad_int, una indicadora binaria que vale 1 cuando el TIPOALTA 
+del egreso es "FALLECIDO". 
+Los predictores principales se agrupan en tres bloques. Primero, el predictor de interés clínico: 
+cantidad_procedimientos, construido como conteo de los campos PROCEDIMIENTO1 a 
+PROCEDIMIENTO30 con valor no nulo. Segundo, los controles clínicos: edad (calculada como 
+diferencia entre fecha de ingreso y fecha de nacimiento), severidad_grd (escala 1–4 ya 
+estandarizada por MINSAL), peso_grd (peso relativo del grupo GRD, proxy del consumo 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 3 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+esperado de recursos) y comorbilidad (conteo de diagnósticos secundarios DIAG2–DIAG30, 
+agregada en este Avance 2 después de notar que era una variable que la primera versión del 
+análisis no estaba aprovechando). Tercero, el efecto fijo institucional: hospital como factor 
+categórico, codificado mediante C(hospital) en las fórmulas de statsmodels, lo que permite 
+estimar un intercepto distinto para cada establecimiento. 
+Variable 
+Tipo 
+Rol en el análisis 
+Descripción 
+log_dias_estada 
+Numérica 
+VD (H₃) 
+log(1 + días de hospitalización) 
+mortalidad_int 
+Binaria 0/1 
+VD (H₂) 
+1 si TIPOALTA = FALLECIDO 
+cantidad_procedimientos 
+Numérica 
+Predictor principal 
+Conteo de procedimientos 
+PROCEDIMIENTO1–30 
+edad 
+Numérica 
+Control clínico 
+Edad al ingreso, en años 
+sexo 
+Categórica 
+Estratificación 
+MUJER / HOMBRE 
+severidad_grd 
+Ordinal 1–4 
+Control clínico 
+Severidad GRD asignada por 
+MINSAL 
+peso_grd 
+Numérica 
+Control clínico 
+Peso relativo del grupo GRD 
+comorbilidad 
+Numérica 
+Control clínico 
+N° de diagnósticos secundarios 
+tipo_ingreso 
+Categórica 
+Variable cruzada 
+URGENCIA / PROGRAMADA 
+tipo_alta 
+Categórica 
+Variable cruzada 
+Fallecido / Domicilio / Derivación / 
+Otras 
+hospital 
+Categórica 
+Efecto fijo 
+Establecimiento (15 hosp. en 
+regresiones) 
+diagnostico_principal 
+Categórica 
+Filtro 
+Código CIE-10 principal 
+Tabla 2. Glosario de las variables clave estandarizadas y su rol en el estudio. 
+2.3 Cambios respecto al Avance 1 
+Respecto a la propuesta del Avance 1 introdujimos cuatro cambios concretos. (i) Incorporamos 
+comorbilidad como variable derivada del conteo de diagnósticos secundarios, ya que el Avance 1 
+no la consideraba y notamos en el EDA que pacientes con muchas comorbilidades exhibían 
+patrones distintos. (ii) Excluimos los egresos obstétricos (TIPO_INGRESO = OBSTETRICA), 
+que aparecían marginalmente incluso en el filtro oncológico por errores de codificación. (iii) 
+Construimos un mapeo limpio de códigos de hospital a nombres legibles y filtramos a los Top 15 
+establecimientos con al menos 30 casos C16.* para los modelos, lo que reduce ruido sin perder 
+representatividad. (iv) Agregamos el nivel comunal de IDH como variable contextual para el 
+Avance 3, aún no incorporada en este análisis pero ya unida en el dataset. 
+3. Limpieza y preparación de los datos 
+La limpieza de la base GRD fue, sin exagerar, la fase del proyecto donde más tiempo invertimos. 
+Los datos administrativos rara vez vienen listos para análisis: códigos que cambian de nombre 
+entre años, fechas en formatos distintos, y casos límite que requieren decisiones explícitas. 
+Documentamos cada decisión y la consolidamos en el pipeline de cinco etapas de la Tabla 3, 
+donde cada paso reduce el dataset y deja registrado el delta correspondiente. 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 4 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+Etapa 
+Operación 
+N resultante 
+Δ 
+1. Filtro CIE-10 
+Restringir a códigos C00–D49 
+(codigos_C00_D49.txt) 
+422.894 
+−34.823 
+2. Exclusión 
+obstétrica 
+Eliminar TIPO_INGRESO = OBSTETRICA 
+421.824 
+−1.070 
+3. Outliers + tipos 
+Truncar dias_estada al P99 (= 25 días); fix tipos 
+418.572 
+−3.252 
+4. Subconjunto focal 
+Filtrar diagnostico_principal en C16.* 
+17.335 
+— 
+5. Subset regresión 
+Top 15 hospitales con ≥ 30 casos cada uno 
+9.855 
+— 
+Tabla 3. Pipeline de limpieza, con efecto cuantitativo de cada etapa. 
+Algunos puntos merecen aclaración explícita. Sobre valores ausentes: el porcentaje de missing 
+en variables clave fue inferior al 1% en todos los casos (días de estadía < 0,5%, edad < 0,1%, 
+severidad y peso GRD < 1%). Eliminamos cuatro registros con severidad o peso GRD nulos, lo 
+que es despreciable. No imputamos: el costo de imputación supera el beneficio cuando el 
+missing es marginal y aleatorio. Sobre duplicados: verificamos por la combinación 
+(CIP_ENCRIPTADO, FECHA_INGRESO, FECHAALTA) y encontramos un puñado de 
+coincidencias exactas. Decidimos retenerlas porque, en el contexto de un sistema público, un 
+paciente puede legítimamente reingresar el mismo día (por ejemplo, alta médica seguida de 
+complicación). Documentamos esta decisión como una limitación. 
+La decisión más sustantiva fue el corte en outliers. Inicialmente probamos truncar al P99,9 pero 
+quedaban estadías de hasta 90 días que distorsionaban mucho la regresión. El corte en P99 (25 
+días) elimina menos de 1% de los casos y devuelve una distribución manejable. Los pacientes 
+con estadías muy largas existen y son clínicamente reales —probablemente complicaciones o 
+cuidados paliativos extensos— pero corresponden a un fenómeno distinto del que queremos 
+modelar (la estadía típica de un cuadro oncológico). Documentar esto explícitamente nos pareció 
+más honesto que dejarlos influir silenciosamente sobre los coeficientes. 
+Finalmente, construimos las variables derivadas que el análisis necesita: mortalidad_int = 
+(TIPOALTA == "FALLECIDO") como entero, log_dias_estada = log(1 + dias_estada) para el 
+OLS, y comorbilidad = conteo de DIAG2…DIAG30 no nulos. Antes de pasar al EDA, una 
+verificación de consistencia: la tasa de mortalidad en el subconjunto C16.* es 7,07% y la 
+severidad media 1,73, ambas cifras coherentes con una población oncológica gástrica del sistema 
+público. 
+4. Análisis exploratorio de los datos (EDA) 
+4.1 Estadística descriptiva: dos miradas, dos universos 
+Como equipo decidimos estructurar el EDA en dos capas complementarias. La primera mira al 
+universo oncológico completo (C00–D49) para tener una referencia poblacional. La segunda 
+hace zoom sobre el subconjunto focal C16.*, que es donde efectivamente vamos a probar las 
+hipótesis. Esta estrategia de doble lectura nos permitió, por ejemplo, notar que el cáncer gástrico 
+no es un caso "típico" dentro de la oncología: tiene mayor edad media, mayor severidad y mayor 
+mortalidad que el promedio del capítulo C00–D49. 
+ 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 5 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+Variable 
+C00–D49 (N=418.572) 
+C16.* (N=17.335) 
+Días de estadía (mediana / media) 
+3 / 4,83 (DE 5,44) 
+4 / 5,21 (DE 5,54) 
+Edad (media) 
+56,1 años (DE 19,7) 
+66,7 años (DE 12,2) 
+Cantidad de procedimientos (media) 
+7,73 (DE 5,94) 
+8,48 (DE 6,20) 
+Severidad GRD (media) 
+1,46 (DE 0,96) 
+1,73 (DE 0,94) 
+Mortalidad (%) 
+5,04 % 
+7,07 % 
+% Hombres 
+38,6 % 
+62,3 % 
+% Ingreso de urgencia 
+27,1 % 
+35,2 % 
+Tabla 4. Comparación descriptiva entre el universo oncológico completo y el subconjunto C16.*. 
+La lectura clínica de estos números es bastante directa. El paciente típico de cáncer gástrico en el 
+sistema público chileno es un hombre de mediana edad-mayor (≈ 67 años), con severidad 
+clínica moderada-alta y un riesgo de fallecer durante la hospitalización 40% superior al 
+promedio oncológico. La distribución de días de estadía mantiene asimetría positiva en ambos 
+universos (mediana < media), justificando la transformación logarítmica que adoptamos para el 
+OLS. La sobrerrepresentación masculina (62,3%) es coherente con la epidemiología 
+internacional del cáncer gástrico, lo que aumenta nuestra confianza en que el dataset captura de 
+manera razonable el fenómeno clínico real. 
+4.2 Visualizaciones exploratorias 
+Antes de ajustar modelos quisimos verificar visualmente tres cosas: (a) que las variables se 
+comporten como esperamos, (b) que no haya multicolinealidad severa entre predictores, y (c) 
+que la variabilidad inter-hospital sea visualmente convincente. La matriz de correlación de 
+Pearson sobre el universo C00–D49 (Anexo, Figura A.1) muestra que la correlación más fuerte 
+es la esperada: procedimientos × días de estadía (r = 0,64), exactamente la relación que el OLS 
+cuantifica más adelante. Severidad y peso GRD presentan correlación moderada (r ≈ 0,5), 
+consistente con que ambas miden complejidad clínica desde ángulos distintos, sin llegar al 
+umbral problemático de |r| ≥ 0,7. En conjunto, descartamos multicolinealidad severa y 
+mantenemos los cinco predictores en el modelo. 
+La pieza visual más reveladora del EDA es el boxplot de días de estadía por hospital para C16.* 
+(Figura 1). Aquí es donde la variabilidad interinstitucional deja de ser una hipótesis y se vuelve 
+algo que se ve a simple vista. 
+ 
+Figura 1. Distribución de días de estadía por hospital — Cáncer gástrico (C16.*). 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 6 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+Lo que muestra la Figura 1 nos sorprendió incluso a nosotros como equipo: para el mismo 
+diagnóstico CIE-10 (cáncer gástrico), la mediana de estadía oscila entre 0 días y 9,5 días entre 
+establecimientos. Hay hospitales con cajas estrechas centradas en 1–3 días y hospitales con cajas 
+anchas centradas en 7–9 días. Antes de avanzar a los tests, esto nos obligó a hacernos una 
+pregunta honesta: ¿esa diferencia refleja realmente prácticas clínicas distintas, o son hospitales 
+que reciben pacientes muy distintos? La respuesta corta, que más adelante confirmamos con los 
+modelos ajustados, es que ambas cosas conviven, pero el efecto institucional persiste incluso 
+después de controlar por severidad clínica. 
+4.3 Relaciones bivariadas relevantes 
+El cruce entre tipo de ingreso y mortalidad arroja la relación bivariada más fuerte del dataset: la 
+mortalidad en ingresos de urgencia es 13,94%, frente a apenas 1,08% en ingresos programados. 
+Esa diferencia de casi 13 puntos porcentuales es coherente con la lógica clínica (los ingresos de 
+urgencia capturan presentaciones avanzadas, complicaciones y descompensaciones), pero 
+también nos alertó sobre un patrón que conecta con desigualdad en el acceso: los hombres tienen 
+mayor proporción de ingresos de urgencia (~42%) que las mujeres (~24%) en cáncer gástrico, lo 
+que sugiere diferencias en patrones de consulta o detección. La mortalidad por hospital también 
+muestra heterogeneidad sustancial, oscilando entre 1% y 29% para el mismo diagnóstico 
+—rango que solo en parte se explica por mix de severidad clínica, como veremos en los modelos. 
+5. Tests de hipótesis 
+5.1 Tests Chi-cuadrado: asociaciones categóricas 
+Antes de los modelos, exploramos tres asociaciones categóricas con tests Chi-cuadrado para fijar 
+el contexto del análisis principal. Las hipótesis se formularon de manera estándar: H₀ las dos 
+variables son independientes; H₁ están asociadas. El nivel de significancia es α = 0,05 en todos 
+los casos. Elegimos Chi-cuadrado porque las variables son categóricas y los conteos esperados 
+superan 5 en todas las celdas; cuando alguna celda tenía conteo bajo (escenario B), reportamos 
+también el test exacto de Fisher como complemento. 
+Escenario 
+Variables 
+Estadístico y p-valor 
+Decisión 
+A 
+Mortalidad × Sexo 
+χ²(1) = 3,46; p = 0,063; OR = 1,15 [0,99; 1,32] 
+No se rechaza 
+H₀ al 5% 
+B 
+Mortalidad × Tipo de ingreso 
+z = 35,07; p_adj < 0,001 (Urg. 13,94% vs. 
+Prog. 1,08%) 
+Se rechaza H₀ 
+C 
+Tipo de alta × Top 10 
+hospitales 
+χ²(27) = 163,17; p ≈ 0 
+Se rechaza H₀ 
+Tabla 5. Resultados Chi-cuadrado en el subconjunto C16.*. 
+La interpretación de estos tres escenarios merece comentario clínico, no solo estadístico. El 
+Escenario A no logra rechazar H₀ por un margen estrecho (p = 0,063), pero el OR puntual de 
+1,15 sugiere una tendencia hacia mayor mortalidad en hombres. Con un dataset más grande la 
+asociación probablemente alcanzaría significancia; aquí preferimos ser conservadores y 
+reportarlo como no concluyente. El Escenario B es la asociación más fuerte y la más relevante 
+clínicamente: una diferencia de casi 13 puntos porcentuales entre urgencia y programada 
+confirma que el modo de ingreso es un proxy potente del estadio en que llega el paciente. El 
+Escenario C muestra, vía residuos estandarizados, que algunos hospitales tienen 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 7 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+sobre-representación de altas a domicilio mientras otros derivan más, lo que apunta a perfiles 
+institucionales distintos —un hallazgo que retomaremos en la Sección 6. 
+5.2 Hipótesis 1 — Kruskal-Wallis: variabilidad procedimental 
+Para H₁ buscábamos contrastar si la distribución del número de procedimientos difiere entre 
+hospitales. La hipótesis nula es que todos los hospitales presentan la misma distribución de 
+procedimientos, frente a la alternativa de que al menos uno difiere. Antes de elegir el test 
+verificamos los supuestos: el test de Shapiro-Wilk sobre los procedimientos rechaza fuertemente 
+la normalidad (W = 0,922; p < 0,001 sobre submuestra de 5.000), lo que descarta ANOVA en su 
+forma estándar. Esto nos dejó con dos opciones: ANOVA con corrección o Kruskal-Wallis no 
+paramétrico. Optamos por Kruskal-Wallis porque (a) preserva la potencia estadística sin asumir 
+normalidad, (b) opera sobre rangos y por lo tanto es robusto a outliers, y (c) es la elección 
+estándar cuando se comparan más de dos grupos con distribuciones no normales (Hollander & 
+Wolfe, 1999). 
+Aplicamos Kruskal-Wallis sobre los 25 hospitales con mayor volumen y al menos 30 casos cada 
+uno, totalizando N = 13.082 egresos. El estadístico H = 1.914,25 con 24 grados de libertad arroja 
+un p-valor < 0,001, lo que rechaza H₀ con holgura. El tamaño del efecto, medido como ε² = 
+0,145, supera el umbral de efecto grande (> 0,14) según Tomczak & Tomczak (2014). Esto 
+significa que el factor hospital explica aproximadamente 14,5% de la varianza en rangos, una 
+magnitud relevante en datos administrativos. 
+Para identificar qué pares específicos de hospitales difieren, aplicamos el post-hoc de Dunn con 
+corrección de Bonferroni (300 comparaciones pareadas). El resultado fue contundente: 193 de 
+las 300 comparaciones (64,3%) resultaron significativas tras ajuste. Es decir, no estamos 
+frente a un par o dos de hospitales que se separan del resto, sino frente a una variabilidad 
+estructural y generalizada del sistema. La interpretación clínica es directa: el hospital al que un 
+paciente con cáncer gástrico llega cambia, de manera estadísticamente robusta, la cantidad de 
+procedimientos que recibirá. 
+5.3 Hipótesis 2 — Regresión logística: procedimientos y mortalidad 
+H₂ pregunta si la cantidad de procedimientos se asocia con la mortalidad intrahospitalaria, 
+controlando por severidad clínica, peso GRD, edad, comorbilidad y hospital (efecto fijo). 
+Hablamos de una variable de respuesta binaria (vivo / fallecido), por lo que el modelo correcto es 
+la regresión logística múltiple, no OLS. La especificación es: 
+ 
+mortalidad_int ~ cantidad_procedimientos + edad + severidad_grd + peso_grd + comorbilidad + 
+C(hospital) 
+ 
+El modelo se ajustó con BFGS (500 iteraciones, statsmodels), sobre N = 9.855 egresos en 15 
+hospitales. La tasa de mortalidad en este subconjunto es 4,05%, lo que implica un desbalance de 
+clase moderado pero manejable. Los odds ratios y sus intervalos de confianza al 95% se 
+presentan en la Tabla 6. 
+ 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 8 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+Predictor 
+OR 
+IC 95% 
+p-valor 
+Sig. 
+cantidad_procedimientos 
+1,050 
+[1,028; 1,073] 
+< 0,001 
+*** 
+edad 
+1,000 
+[0,991; 1,009] 
+0,931 
+ns 
+severidad_grd 
+6,147 
+[4,957; 7,623] 
+< 0,001 
+*** 
+peso_grd 
+0,683 
+[0,590; 0,792] 
+< 0,001 
+*** 
+comorbilidad 
+1,061 
+[1,030; 1,093] 
+< 0,001 
+*** 
+Tabla 6. Odds Ratios del modelo logístico (efectos hospital omitidos por brevedad). 
+La interpretación clínica de estos OR es la siguiente. Cada procedimiento adicional aumenta 
+la odds de fallecer en un 5% (OR = 1,05; IC 95% [1,03; 1,07]; p < 0,001), manteniendo 
+constantes severidad, peso GRD, edad, comorbilidad y hospital. Antes de leerlo como una 
+relación causal preocupante, conviene aclarar que el OR del 1,05 captura confusión por 
+indicación: pacientes más graves o con cuadros más complicados naturalmente reciben más 
+procedimientos. La variable que captura realmente el riesgo clínico es severidad GRD, cuyo OR 
+de 6,1 indica que cada nivel adicional multiplica por seis las odds de mortalidad —el predictor 
+más potente del modelo. El OR de peso GRD < 1 (0,68) es contraintuitivo y discutimos su 
+interpretación en la sección 7. La edad no resulta significativa, probablemente porque la 
+severidad GRD ya absorbe el efecto del envejecimiento. 
+Métricas globales: pseudo-R² de McFadden = 0,259 (excelente para un modelo logístico, ya que 
+valores > 0,2 se consideran buenos en datos clínicos), AIC = 2.517. Para evaluar capacidad 
+predictiva, dividimos el dataset 75/25 estratificado por mortalidad y obtuvimos sobre el set de 
+prueba un AUC-ROC = 0,873, que cae en el rango "bueno" (0,80–0,90) según los estándares 
+clínicos habituales. La curva ROC del modelo se muestra en la Figura A.10 del Anexo. La matriz 
+de confusión (umbral 0,5) muestra alta especificidad (≈ 100%) pero baja sensibilidad (≈ 3%), lo 
+cual es típico en problemas con clase positiva minoritaria; con un umbral más bajo (por ejemplo, 
+0,1) la sensibilidad aumenta considerablemente, pero esa optimización queda para el Avance 3. 
+6. Modelo de regresión lineal múltiple (H₃) 
+6.1 Objetivo y especificación 
+Con H₃ buscamos cuantificar cuánto contribuyen los procedimientos —y los efectos 
+institucionales— a la duración de la estadía hospitalaria, separando lo que explica el cuadro 
+clínico de lo que explica el establecimiento. La variable dependiente es log(1+dias_estada), 
+elegida por las razones de simetría y de interpretabilidad como semi-elasticidad ya discutidas. La 
+especificación es: 
+log_dias_estada ~ cantidad_procedimientos + edad + severidad_grd + peso_grd + comorbilidad + 
+C(hospital) 
+El modelo se ajustó por mínimos cuadrados ordinarios con errores estándar robustos a 
+heterocedasticidad tipo HC3 (White, 1980), porque los gráficos de residuos sugerían varianza no 
+constante. Las variables categóricas (hospital) se codifican automáticamente con C(.); el 
+coeficiente de cada hospital se interpreta respecto al de referencia, que statsmodels elige por 
+orden alfabético. Los resultados se presentan en la Tabla 7. 
+ 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 9 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+6.2 Resultados y métricas globales 
+Predictor 
+β (log) 
+SE 
+HC3 
+IC 95% 
+p 
+Δ% aprox. 
+cantidad_procedimientos 
+0,0928 
+0,0014 
+[0,0901; 0,0956] 
+< 0,001 
++9,73 % 
+edad 
+0,0014 
+0,0005 
+[0,0003; 0,0025] 
+0,011 
++0,14 % 
+severidad_grd 
+0,3645 
+0,0107 
+[0,3435; 0,3855] 
+< 0,001 
++43,98 % 
+peso_grd 
+−0,0042 
+0,0129 
+[−0,0294; 0,0210] 
+0,743 
+ns 
+comorbilidad 
+−0,0321 
+0,0025 
+[−0,0370; −0,0273] 
+< 0,001 
+−3,16 % 
+Tabla 7. Coeficientes del modelo OLS con errores HC3 (efectos hospital omitidos por brevedad). 
+El modelo presenta R² = 0,636 y R² ajustado = 0,635, con F(19; 9.835) = 978,1 (p < 0,001). En 
+términos predictivos, sobre el set de prueba 25% obtuvimos MAE = 3,49 días y RMSE = 5,60 
+días en escala original (después de back-transform mediante np.expm1). Que el R² caiga 
+ligeramente al pasar de entrenamiento a prueba (de 0,64 a 0,62) sugiere baja sobreajuste, lo que 
+es consistente con un modelo lineal con regularización implícita por el tamaño de muestra. El 
+modelo predice los días de estadía con un error promedio inferior a 4 días, lo que es razonable 
+considerando que estamos usando solo variables administrativas, sin información clínica 
+detallada como estadio TNM o resecabilidad. El gráfico de predicción vs. valor observado se 
+encuentra en el Anexo (Figura A.13). 
+6.3 Interpretación de coeficientes 
+Cuatro coeficientes merecen interpretación detallada en lenguaje aplicado: 
+(1) Cantidad de procedimientos: manteniendo constantes severidad, peso GRD, edad, 
+comorbilidad y hospital, cada procedimiento adicional se asocia con un aumento de 9,7% en 
+los días de estadía (β = 0,093; p < 0,001). En términos prácticos, un paciente que recibe 10 
+procedimientos más que otro pasaría aproximadamente el doble de días hospitalizado. Esta es 
+nuestra estimación del costo en estadía de cada intervención adicional, condicionado a un mismo 
+perfil clínico. 
+(2) Severidad GRD: cada nivel adicional de severidad (escala 1 a 4) se asocia con un aumento 
+del 44,0% en la estadía (β = 0,365; p < 0,001). Este resultado valida la clasificación GRD como 
+proxy clínico: pacientes con severidad 4 se hospitalizan, en promedio, 2,9 veces más tiempo que 
+pacientes con severidad 1, lo cual es esperable y refuerza la confianza en el modelo. 
+(3) Comorbilidad: efecto inesperadamente negativo. Cada comorbilidad adicional se asocia con 
+un descenso del 3,2% en la estadía (β = −0,032; p < 0,001). Inicialmente esto nos pareció un 
+error y revisamos el código. Tras descartarlo, formulamos la hipótesis siguiente: pacientes con 
+muchas comorbilidades a menudo reciben manejo paliativo en lugar de cirugía mayor, y por lo 
+tanto tienen estadías más cortas pero con peor pronóstico. Esto se respalda con el OR > 1 de 
+comorbilidad en el modelo logístico de mortalidad. Es un hallazgo no trivial que conecta 
+limitaciones del dataset con realidades clínicas. 
+(4) Efectos fijos de hospital: aunque omitidos en la tabla por brevedad, los 14 dummies de 
+hospital varían entre β ≈ −0,45 y β ≈ +0,38 en escala log, lo que implica diferencias de hasta 
+57% en estadía ajustada para un mismo perfil clínico. Esta es la evidencia cuantitativa central 
+del proyecto: incluso después de controlar por severidad, peso GRD, edad, comorbilidad y 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 10 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+procedimientos, el hospital sigue teniendo un efecto estadísticamente significativo y clínicamente 
+relevante. Es decir, el sistema no entrega tratamientos uniformes para casos comparables. 
+6.4 Evaluación crítica del modelo 
+El R² de 0,64 es razonable pero deja un 36% de varianza sin explicar. Las causas probables son 
+tres. Primero, variables clínicas faltantes: el dataset GRD no incluye estadio TNM, histología, 
+ECOG ni biomarcadores —todas variables que predicen estadía en cáncer gástrico. Segundo, 
+relaciones no lineales que el modelo lineal no captura, como interacciones procedimientos × 
+severidad. Tercero, heterogeneidad temporal: estamos pooleando seis años, incluyendo el shock 
+COVID-19, lo que introduce ruido. Estas tres limitaciones definen agenda para el Avance 3 
+(interacciones, panel temporal, modelo multinivel). 
+7. Discusión preliminar 
+La pregunta inicial era si el hospital realmente importa una vez que se controla por las 
+características clínicas observables. La respuesta corta, después de tres tests y dos modelos, es sí, 
+e importa más de lo que esperábamos. Tres hallazgos centrales sostienen esa conclusión. 
+Primero, la variabilidad procedimental entre hospitales es estructural, no anecdótica. El test 
+de Kruskal-Wallis con ε² = 0,145 (efecto grande) y la mayoría de comparaciones pareadas 
+significativas (193/300, ~64%) descartan que estemos viendo un par de outliers institucionales. 
+Esto es coherente con la literatura internacional sobre variabilidad clínica injustificada 
+(Wennberg, 2010), pero su magnitud en el sistema público chileno parece mayor que la reportada 
+en sistemas con protocolos más estandarizados (Munir et al., 2024). El contraste con la realidad 
+clínica es el siguiente: no estamos diciendo que los hospitales "cómodos" hagan menos 
+procedimientos por capricho; muy probablemente reflejan diferencias en infraestructura, mix 
+case, especialidades y prácticas culturales. Pero esa misma constatación es lo que convierte la 
+variabilidad en un problema de equidad: un paciente recibe distinto tratamiento por algo que no 
+controla. 
+Segundo, los efectos fijos de hospital en los modelos de regresión son significativos y de 
+magnitud clínica relevante. Después de ajustar por severidad, peso GRD, edad, comorbilidad y 
+procedimientos, los hospitales siguen difiriendo hasta en un 57% en la estadía ajustada para 
+perfiles clínicos comparables. Esta es la evidencia más directa de que la pregunta de 
+investigación tiene respuesta afirmativa: el hospital es un determinante autónomo. Para el 
+modelo logístico, el AUC de 0,87 confirma que los predictores capturan bien el riesgo clínico, y 
+dentro de esa estructura los hospitales contribuyen un componente identificable. 
+Tercero, aparecieron dos hallazgos inesperados. El signo negativo del coeficiente de 
+comorbilidad en el OLS contradice la intuición de que más comorbilidades implica más estadía; 
+nuestra hipótesis interpretativa —pacientes pluripatológicos reciben manejo paliativo más 
+breve— es testable en el Avance 3 estratificando por tipo de alta. Y el coeficiente negativo del 
+peso GRD en el logístico (OR = 0,68) sugiere que, controlada la severidad, el peso GRD captura 
+algo como "complejidad gestionada" más que riesgo de fallecer. 
+Las limitaciones son cinco: (i) los datos administrativos no contienen estadio TNM, histología ni 
+ECOG; (ii) la comorbilidad es un conteo simple, inferior al índice Charlson-Deyo; (iii) los 
+efectos fijos no se generalizan a establecimientos no incluidos —un multinivel sería superior; 
+(iv) el análisis es transversal y agrega seis años sin explotar la dimensión temporal; (v) 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 11 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+restringimos las regresiones a 15 hospitales de alto volumen, excluyendo centros pequeños. 
+Ninguna invalida los hallazgos, pero todas definen la agenda del Avance 3. 
+8. Próximos pasos para el avance final 
+Cinco líneas de trabajo para el Avance 3: (1) ampliar a tres grupos oncológicos (C16.*, 
+C33–C34, C61); (2) migrar a un modelo multinivel con intercepto aleatorio por hospital (ICC); 
+(3) análisis geográfico-socioeconómico cruzando CASEN; (4) clusters de hospitales vía 
+K-means sobre perfiles de desempeño; (5) refinar el desbalance de clase en el logístico. Tareas: 
+Vicente (multinivel/clustering), José Tomás (geográfico), Sebastián (informe). 
+ 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 12 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+9. Referencias 
+Hollander, M., & Wolfe, D. A. (1999). Nonparametric statistical methods (2nd ed.). Wiley. 
+Kamaraju, S., Maganty, A., & Davies, B. J. (2022). Hospital-level variation in the management and 
+outcomes of gastric cancer. Journal of Surgical Oncology, 126(4), 656–665. 
+Ministerio de Salud de Chile. (2024). Base de datos GRD Público MINSAL/FONASA 2019–2024. 
+Santiago: MINSAL. Recuperado de https://datos.gob.cl 
+Munir, M. M., Thammachack, R., Endo, Y., Altaf, A., Woldesenbet, S., Rashid, Z., Khalil, M., Dillhoff, 
+M., Ejaz, A., Cloyd, J., & Pawlik, T. M. (2024). Hospital variability in treatment and outcomes of 
+gastric cancer. Journal of Gastrointestinal Surgery, 28(3), 337–345. 
+Seabold, S., & Perktold, J. (2010). Statsmodels: Econometric and statistical modeling with Python. 
+Proceedings of the 9th Python in Science Conference, 57–61. 
+Tomczak, M., & Tomczak, E. (2014). The need to report effect size estimates revisited. Trends in Sport 
+Sciences, 1(21), 19–25. 
+Wennberg, J. E. (2010). Tracking medicine: A researcher's quest to understand health care. Oxford 
+University Press. 
+Wennberg, J., & Gittelsohn, A. (1973). Small area variations in health care delivery. Science, 182(4117), 
+1102–1108. https://doi.org/10.1126/science.182.4117.1102 
+White, H. (1980). A heteroskedasticity-consistent covariance matrix estimator and a direct test for 
+heteroskedasticity. Econometrica, 48(4), 817–838. 
+ 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 13 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+Anexo A — Figuras complementarias 
+Este anexo agrupa las visualizaciones de respaldo del análisis. La Figura 1 (boxplot de días de 
+estadía por hospital) ya fue presentada en el cuerpo del informe; aquí se reproducen las restantes. 
+ 
+Figura A.1. Matriz de correlación de Pearson — Variables numéricas (universo C00–D49). 
+ 
+Figura A.2. Distribuciones univariadas — Universo oncológico C00–D49. 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 14 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+ 
+Figura A.3. Tasa de mortalidad por hospital — Cáncer gástrico (C16.*). 
+ 
+Figura A.4. Ingresos de urgencia por sexo — Cáncer gástrico (C16.*). 
+ 
+Figura A.5. Mortalidad por sexo — Escenario A Chi-cuadrado (C16.*). 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 15 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+ 
+Figura A.6. Mortalidad por tipo de ingreso — Escenario B Chi-cuadrado (C16.*). 
+ 
+Figura A.7. Residuos estandarizados tipo de alta × hospital — Escenario C Chi-cuadrado. 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 16 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+ 
+Figura A.8. Heatmap Dunn-Bonferroni: p-valores ajustados entre pares de hospitales (C16.*). 
+ 
+Figura A.9. Forest plot — Odds Ratios ajustados del modelo logístico (C16.*). 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 17 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+ 
+Figura A.10. Curva ROC del modelo logístico sobre set de prueba (AUC = 0,873). 
+ 
+Figura A.11. Matriz de confusión del modelo logístico (umbral 0,5). 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 18 de 19 
+Avance 2 — Variabilidad en el Tratamiento Oncológico (Cáncer Gástrico C16.*) 
+ 
+Figura A.12. Diagnóstico de residuos del modelo OLS — Q-Q plot, residuos vs. ajustados, escala-localización y 
+leverage. 
+ 
+Figura A.13. Predicción vs. valor observado — Modelo OLS sobre set de prueba C16.*. 
+Universidad del Desarrollo · Análisis de Datos e Inferencia Estadística · Página 19 de 19 

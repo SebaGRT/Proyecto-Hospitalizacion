@@ -1,0 +1,265 @@
+﻿Universidad del Desarrollo - Facultad de Ingenier├¡a | An├ílisis de Datos e Inferencia Estad├¡stica
+Segundo Avance de Proyecto - Requerimientos
+Universidad del Desarrollo - Facultad de Ingenier├¡a
+Curso: An├ílisis de Datos e Inferencia Estad├¡stica
+Segundo Avance de Proyecto - Requerimientos
+Fecha de entrega
+[Completar fecha]
+Modalidad
+Grupos de 2 a 3 estudiantes
+Formato
+Informe escrito + repositorio + cuaderno Jupyter + 
+presentaci├│n oral
+Enfoque
+An├ílisis exploratorio, inferencia estad├¡stica y 
+modelamiento inicial
+1. Objetivo del avance
+El Segundo Avance tiene como prop├│sito que los grupos desarrollen el an├ílisis estad├¡stico inicial 
+de  su  proyecto,  aplicando  herramientas  de  an├ílisis  exploratorio  de  datos,  visualizaci├│n, 
+estad├¡stica inferencial y modelamiento b├ísico.
+A diferencia del  Primer Avance, que  estuvo centrado en la  formulaci├│n de  la  pregunta  de 
+investigaci├│n, revisi├│n de literatura y dise├▒o metodol├│gico, este avance debe mostrar evidencia 
+concreta de trabajo con los datos. El foco estar├í en analizar, interpretar y comunicar hallazgos 
+preliminares de manera rigurosa y coherente con la pregunta de investigaci├│n planteada.
+En este avance, cada grupo deber├í presentar: un EDA completo, al menos un test de hip├│tesis 
+correctamente formulado e interpretado, e idealmente un modelo de regresi├│n lineal m├║ltiple, 
+recomendado especialmente cuando la pregunta de investigaci├│n involucre explicar o predecir 
+una variable cuantitativa.
+2. Entregables
+2.1. Informe escrito
+∩é╖
+M├íximo 10 p├íginas, sin considerar anexos ni referencias.
+∩é╖
+Formato APA.
+Debe contener todas las secciones descritas en este documento.
+Debe ser entregado en formato PDF y Word.
+2.2. Repositorio compartido
+El repositorio puede estar en GitHub, GitLab u otra plataforma equivalente. Debe incluir c├│digo 
+fuente  completo,  cuaderno  Jupyter  (.ipynb)  debidamente  documentado,  archivos  de  datos 
+utilizados o enlaces de acceso, y un archivo README breve.
+El README debe indicar: nombre del proyecto, integrantes, fuente de datos e instrucciones 
+b├ísicas para reproducir el an├ílisis.
+8 de mayo hasta las 23:59
+Universidad del Desarrollo - Facultad de Ingenier├¡a | An├ílisis de Datos e Inferencia Estad├¡stica
+Segundo Avance de Proyecto - Requerimientos
+El cuaderno Jupyter debe incluir celdas Markdown explicativas, c├│digo comentado, resultados 
+visibles, tablas y gr├íficos.
+2.3. Presentaci├│n oral
+∩é╖
+Duraci├│n: 10 a 15 minutos.
+Debe presentar la pregunta de investigaci├│n, dataset utilizado, principales resultados del EDA, 
+test de hip├│tesis realizado, modelo de regresi├│n si corresponde, interpretaci├│n preliminar de 
+hallazgos, limitaciones y pr├│ximos pasos.
+3. Estructura y contenido del informe
+3.1. Portada
+∩é╖
+Nombre del proyecto.
+∩é╖
+Integrantes.
+∩é╖
+Fecha.
+∩é╖
+Nombre del profesor/a y ayudante.
+∩é╖
+Curso.
+3.2. Introducci├│n y pregunta de investigaci├│n actualizada
+∩é╖
+Esta secci├│n debe retomar y mejorar lo presentado en el Avance 1.
+Debe incluir contexto general del problema, breve justificaci├│n de la relevancia del estudio, 
+pregunta de investigaci├│n final o actualizada, hip├│tesis general del proyecto si corresponde, y una 
+breve explicaci├│n de c├│mo los datos permiten abordar la pregunta.
+La pregunta de investigaci├│n debe ser clara, espec├¡fica, medible y coherente con el an├ílisis 
+realizado.
+3.3. Descripci├│n del dataset
+∩é╖
+Fuente de los datos.
+∩é╖
+N├║mero de observaciones.
+∩é╖
+N├║mero de variables.
+Tipo de datos: transversales, longitudinales, administrativos, cl├¡nicos, educacionales, econ├│micos, 
+ambientales, etc.
+Unidad de an├ílisis: persona, comuna, hospital, evento, pa├¡s, empresa, establecimiento, etc.
+∩é╖
+Variables principales del estudio.
+∩é╖
+Variable dependiente o de inter├⌐s, si corresponde.
+∩é╖
+Variables independientes o explicativas, si corresponde.
+∩é╖
+Breve glosario de variables relevantes.
+Indicar si realizaron cambios respecto al dataset propuesto en el Avance 1 y justificar esos 
+cambios.
+Universidad del Desarrollo - Facultad de Ingenier├¡a | An├ílisis de Datos e Inferencia Estad├¡stica
+Segundo Avance de Proyecto - Requerimientos
+3.4. Limpieza y preparaci├│n de datos
+∩é╖
+Identificaci├│n y manejo de valores ausentes.
+∩é╖
+Identificaci├│n y tratamiento de duplicados.
+∩é╖
+Revisi├│n de tipos de variables.
+∩é╖
+Codificaci├│n de variables categ├│ricas, si corresponde.
+∩é╖
+Creaci├│n de nuevas variables, si corresponde.
+∩é╖
+Detecci├│n de valores at├¡picos u outliers.
+∩é╖
+Decisiones metodol├│gicas tomadas durante la limpieza.
+No basta con decir que ΓÇ£se limpiaron los datosΓÇ¥. Deben explicar qu├⌐ problemas encontraron y 
+c├│mo los resolvieron.
+4. An├ílisis Exploratorio de Datos - EDA
+4.1. Estad├¡stica descriptiva
+∩é╖
+Deben presentar estad├¡sticas descriptivas de las variables relevantes.
+Para variables num├⌐ricas: media, mediana, desviaci├│n est├índar, m├¡nimo, m├íximo, percentiles o 
+rango intercuart├¡lico si corresponde.
+∩é╖
+Para variables categ├│ricas: frecuencias absolutas, porcentajes y tablas resumen.
+Cada tabla debe estar acompa├▒ada de una breve interpretaci├│n.
+4.2. Visualizaciones exploratorias
+Deben incluir gr├íficos adecuados seg├║n el tipo de variable: histogramas, boxplots, gr├íficos de 
+barras, gr├íficos de dispersi├│n, matriz de correlaci├│n si corresponde y gr├íficos comparativos entre 
+grupos.
+Cada gr├ífico debe tener t├¡tulo claro, ejes correctamente etiquetados, leyenda si corresponde e 
+interpretaci├│n escrita.
+No se aceptar├ín gr├íficos sin explicaci├│n.
+4.3. An├ílisis de relaciones entre variables
+∩é╖
+Deben explorar relaciones relevantes para su pregunta de investigaci├│n.
+Por ejemplo: relaci├│n entre variables num├⌐ricas, comparaci├│n de una variable num├⌐rica entre 
+grupos,  asociaci├│n  entre  variables  categ├│ricas,  correlaciones  entre  variables  cuantitativas  y 
+diferencias preliminares entre grupos de inter├⌐s.
+∩é╖
+Esta secci├│n debe conectar directamente con la pregunta de investigaci├│n.
+Universidad del Desarrollo - Facultad de Ingenier├¡a | An├ílisis de Datos e Inferencia Estad├¡stica
+Segundo Avance de Proyecto - Requerimientos
+5. Test de hip├│tesis
+5.1. Formulaci├│n del test
+Deben indicar claramente: hip├│tesis nula (H0), hip├│tesis alternativa (H1), nivel de significancia 
+utilizado, variable o variables analizadas y tipo de test utilizado.
+Ejemplos de test posibles: test t para comparar medias entre dos grupos, ANOVA para comparar 
+medias entre m├ís de dos grupos, test chi-cuadrado para asociaci├│n entre variables categ├│ricas, 
+test  de  correlaci├│n  de  Pearson  o  Spearman,  test  de  proporciones  u  otro  test  debidamente 
+justificado.
+5.2. Justificaci├│n del test seleccionado
+∩é╖
+Deben explicar por qu├⌐ el test elegido es adecuado para sus datos y su pregunta.
+Se debe considerar el tipo de variable, n├║mero de grupos comparados, supuestos del test, tama├▒o 
+muestral y naturaleza de la pregunta de investigaci├│n.
+5.3. Resultados e interpretaci├│n
+Deben reportar estad├¡stico del test, valor p, decisi├│n estad├¡stica, interpretaci├│n en lenguaje claro y 
+relaci├│n del resultado con la pregunta de investigaci├│n.
+Ejemplo de redacci├│n esperada: ΓÇ£Dado que el valor p fue menor a 0,05, se rechaza la hip├│tesis 
+nula. Esto sugiere que existen diferencias estad├¡sticamente significativas en el costo promedio de 
+hospitalizaci├│n entre los grupos comparadosΓÇ¥.
+No basta con reportar el valor p. Deben explicar qu├⌐ significa el resultado.
+6. Modelo de regresi├│n lineal m├║ltiple - recomendado
+6.1. Objetivo del modelo
+Deben explicar qu├⌐ se busca modelar. Por ejemplo: predecir el costo hospitalario, explicar los 
+d├¡as de estad├¡a, estimar el efecto de ciertas variables sobre una variable de resultado o evaluar 
+qu├⌐ factores se asocian con una variable dependiente.
+6.2. Especificaci├│n del modelo
+Deben indicar variable dependiente, variables independientes, variables categ├│ricas incluidas en 
+el modelo y justificaci├│n de la selecci├│n de variables.
+∩é╖
+Ejemplo: costo ~ edad + dias_estadia + sexo + severidad + servicio.
+6.3. Resultados del modelo
+Deben presentar una tabla con los principales resultados del modelo: coeficientes, error est├índar, 
+valor p, intervalos de confianza si corresponde, R2 o R2 ajustado e interpretaci├│n general del 
+modelo.
+Universidad del Desarrollo - Facultad de Ingenier├¡a | An├ílisis de Datos e Inferencia Estad├¡stica
+Segundo Avance de Proyecto - Requerimientos
+6.4. Interpretaci├│n de coeficientes
+∩é╖
+Deben interpretar al menos tres coeficientes relevantes.
+∩é╖
+La interpretaci├│n debe ser en lenguaje aplicado, no solo estad├¡stico.
+Ejemplo: ΓÇ£Manteniendo constantes las dem├ís variables del modelo, un aumento de un d├¡a en la 
+estad├¡a hospitalaria se asocia con un aumento promedio de X pesos en el costo totalΓÇ¥.
+6.5. Evaluaci├│n b├ísica del modelo
+Deben  comentar,  seg├║n  corresponda:  capacidad  explicativa  del  modelo,  R2  o  R2  ajustado, 
+significancia global del modelo, posibles problemas de interpretaci├│n, limitaciones del modelo y 
+variables importantes que podr├¡an faltar.
+No se espera un modelo perfecto, pero s├¡ una interpretaci├│n cr├¡tica.
+7. Discusi├│n preliminar
+En esta secci├│n deben integrar los hallazgos del EDA, el test de hip├│tesis y el modelo, si fue 
+incluido.
+Deben responder: ┬┐qu├⌐ resultados preliminares son m├ís importantes?, ┬┐los resultados apoyan la 
+pregunta o hip├│tesis inicial?, ┬┐qu├⌐ patrones relevantes se observaron?, ┬┐qu├⌐ hallazgos fueron 
+inesperados?, ┬┐qu├⌐ limitaciones tienen los datos o el an├ílisis?, ┬┐qu├⌐ falta realizar para el avance 
+final?
+8. Pr├│ximos pasos para el avance final
+∩é╖
+Deben presentar un plan claro para finalizar el proyecto.
+Debe  incluir  an├ílisis  pendientes,  mejoras  al  modelo  si  corresponde,  nuevas  visualizaciones, 
+profundizaci├│n de la discusi├│n, revisi├│n de literatura adicional, preparaci├│n de la presentaci├│n 
+final y distribuci├│n de tareas dentro del grupo.
+9. Referencias
+Deben incluir fuentes de datos, bibliograf├¡a utilizada, documentaci├│n t├⌐cnica y herramientas o 
+librer├¡as utilizadas.
+∩é╖
+Las referencias deben seguir formato APA.
+10. Requerimientos del Cuaderno Jupyter
+10.1. Estructura m├¡nima
+∩é╖
+T├¡tulo del proyecto.
+∩é╖
+Integrantes.
+∩é╖
+Introducci├│n breve.
+∩é╖
+Carga de datos.
+∩é╖
+Limpieza de datos.
+∩é╖
+EDA completo.
+∩é╖
+Visualizaciones.
+Universidad del Desarrollo - Facultad de Ingenier├¡a | An├ílisis de Datos e Inferencia Estad├¡stica
+Segundo Avance de Proyecto - Requerimientos
+∩é╖
+Test de hip├│tesis.
+∩é╖
+Modelo de regresi├│n lineal m├║ltiple, si corresponde.
+∩é╖
+Interpretaci├│n de resultados.
+∩é╖
+Conclusiones preliminares.
+10.2. Buenas pr├ícticas
+El cuaderno debe tener celdas Markdown explicativas, c├│digo comentado, resultados visibles, 
+tablas y gr├íficos correctamente rotulados, orden l├│gico y ejecuci├│n reproducible desde el inicio 
+hasta el final.
+No se aceptar├ín cuadernos con solo c├│digo sin explicaci├│n.
+11. Aspectos t├⌐cnicos y formales
+∩é╖
+Redacci├│n clara y formal.
+∩é╖
+Figuras y tablas numeradas.
+∩é╖
+Tablas y gr├íficos interpretados.
+∩é╖
+Coherencia entre pregunta, datos, an├ílisis y resultados.
+∩é╖
+Uso adecuado de conceptos estad├¡sticos.
+∩é╖
+Citas y referencias en formato APA.
+∩é╖
+Entrega en PDF y Word.
+∩é╖
+Repositorio actualizado y accesible.
+12. Presentaci├│n oral
+∩é╖
+La presentaci├│n debe durar entre 10 y 15 minutos.
+Debe incluir: t├¡tulo del proyecto e integrantes, pregunta de investigaci├│n, descripci├│n breve del 
+dataset,  principales  decisiones  de  limpieza  de  datos,  resultados  centrales  del  EDA,  test  de 
+hip├│tesis realizado, modelo de regresi├│n si fue incluido, interpretaci├│n de hallazgos, limitaciones 
+y pr├│ximos pasos para el avance final.
+La presentaci├│n debe enfocarse en comunicar resultados, no solo en describir procedimientos.
+Observaci├│n importante para los estudiantes
+El Avance 2 no debe limitarse a mostrar c├│digo o gr├íficos. Lo m├ís importante es que el grupo 
+demuestre capacidad para interpretar los datos, formular conclusiones preliminares y conectar 
+los resultados con la pregunta de investigaci├│n. Un buen an├ílisis no es el que tiene m├ís gr├íficos o 
+modelos, sino el que responde mejor a la pregunta planteada con evidencia estad├¡stica clara.
+
