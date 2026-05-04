@@ -1,21 +1,23 @@
 # Variabilidad en el Tratamiento Oncológico y sus Efectos sobre la Mortalidad y la Estadía Hospitalaria en el Sistema Público Chileno
 
-**Curso:** Análisis de Datos e Inferencia Estadística — UDD 2026
+**Curso:** Análisis de Datos e Inferencia Estadística — UDD 2026  
+**Profesora:** Karen Oróstica  
+**Ayudante:** David Hernández
 
 ---
 
 ## Integrantes
 
 - Vicente Rodríguez
-- José Tomás Amat 
-- Sebastián Herrera 
+- José Tomás Amat
+- Sebastián Herrera
 
 ---
 
 ## Fuente de Datos
 
 Los datos utilizados en este proyecto corresponden a los **GRD Públicos del Ministerio de Salud de Chile (MINSAL)**, gestionados por FONASA, correspondientes a los años **2019–2024**.
-El archivo notebook principal utiliza principalmente una version depurada de los datasets GRD correspondientes a aquel periodo.
+El archivo notebook principal utiliza principalmente una versión depurada de los datasets GRD correspondiente a aquel periodo.
 
 - **Dataset principal:** `DATASET INICIAL/GRD_Limpio.csv`
 - **Dimensiones:** ~454.000 registros de egresos hospitalarios y ~145 variables (seleccionadas las clínicamente relevantes).
@@ -65,7 +67,7 @@ pip install pandas numpy matplotlib seaborn scipy statsmodels scikit-learn
 
 5. **Abrir el notebook principal:**
    ```bash
-   jupyter notebook Avance2_Proyecto_Final.ipynb
+   jupyter notebook "Avance 2/Avance2_Proyecto_AmatHerreraRodríguez.ipynb"
    ```
 
 6. **Ejecutar el análisis:**
@@ -78,12 +80,6 @@ pip install pandas numpy matplotlib seaborn scipy statsmodels scikit-learn
 
 ```
 Proyecto-Hospitalizacion/
-├── Avance2_Proyecto_Final.ipynb              # Notebook principal con análisis completo (EDA + inferencia)
-├── Avance2_Proyecto_Final.py                 # Exportación Python del notebook principal
-├── codigos_C00_D49.txt                       # Lista de códigos CIE-10 oncológicos usados en el filtro
-├── feedback_avance2.md                       # Retroalimentación del segundo avance
-├── theme_early_graphs.py                     # Script de tematización de gráficos
-├── upgrade_graphs.py                         # Script de actualización de figuras del notebook
 ├── Avance 1/                                 # Notebooks y archivos del primer avance
 │   ├── EDA_Egresos_Hospitalarios_Chile.ipynb
 │   ├── EDA_Egresos_Hospitalarios_Chile (Cargado).ipynb
@@ -95,14 +91,13 @@ Proyecto-Hospitalizacion/
 │   ├── instrucciones.txt
 │   └── codigos_C00_D49.txt
 ├── Avance 2/                                 # Notebook y outputs del segundo avance
-│   ├── Avance2_Proyecto_Final.ipynb
+│   ├── Avance2_Proyecto_AmatHerreraRodríguez.ipynb  # Notebook principal con análisis completo
 │   └── outputs/
-│       ├── graficos/
-│       ├── tablas/
-│       └── inferencial/
+│       ├── graficos/                         # Visualizaciones EDA e inferenciales
+│       ├── tablas/                           # Tablas descriptivas exportadas
+│       └── inferencial/                      # Resultados de tests de hipótesis y modelos
 ├── DATASET INICIAL/                          # Dataset limpio y archivos auxiliares
 │   ├── GRD_Limpio.csv                        # Dataset principal (~454k registros)
-│   ├── df_clean_final_2019_2024.csv          # Dataset alternativo limpio
 │   ├── idh_comunas_2024.csv                  # Datos socioeconómicos (IDH comunal)
 │   ├── HospitalesGRD.xlsx                    # Mapeo de códigos a nombres de hospitales
 │   ├── comunas-regiones.json                 # Mapeo comunas-regiones
@@ -110,6 +105,7 @@ Proyecto-Hospitalizacion/
 │   ├── CIE-10-filtrado.ipynb                 # Notebook de filtrado de códigos CIE-10
 │   └── codigos_C00_D49.txt                   # Lista de códigos CIE-10 oncológicos
 ├── DATASET-PROBLEMA8/                        # Datasets originales GRD por año (2019–2024)
+│   ├── df_clean_final_2019_2024.csv          # Dataset alternativo limpio
 │   ├── GRD_PUBLICO_2019.csv
 │   ├── GRD_PUBLICO_2020.csv
 │   ├── GRD_PUBLICO_2021.csv
@@ -123,20 +119,53 @@ Proyecto-Hospitalizacion/
 │   ├── Avance1_Presentacion.pdf
 │   ├── Avance1_AmatHerreraRodríguez.pdf
 │   ├── Reporte_Avance2_Final.docx
-│   └── Reporte_Avance2_Final.pdf
+│   ├── Reporte_Avance2_Final.pdf
+│   └── Variabilidad_Hospitalaria_Presentation.pptx
 ├── outputs/                                  # Gráficos y tablas generados (raíz)
 │   ├── graficos/                             # Visualizaciones EDA
+│   │   ├── barplot_mortalidad_hospital_C16.png
+│   │   ├── barplot_procedimientos_hospital_C16.png
+│   │   ├── boxplot_dias_hospital_C16.png
+│   │   ├── categoricas_globales.png
+│   │   ├── correlacion_variables_numericas.png
+│   │   ├── eda_univariado_global.png
+│   │   ├── eda_urgencias_por_sexo_C16.png
+│   │   └── top15_diagnosticos_onco.png
 │   ├── tablas/                               # Tablas descriptivas exportadas
-│   └── inferencial/                          # Resultados de tests de hipótesis
+│   │   ├── 03_varianza_por_hospital.csv
+│   │   ├── h3_ols_coefs_C16.csv
+│   │   ├── tabla_descriptiva_hospital_C16.csv
+│   │   └── tabla1_descriptivas_global.csv
+│   └── inferencial/                          # Resultados de tests de hipótesis y modelos
+│       ├── cat_A_mortalidad_sexo.png
+│       ├── cat_B_mortalidad_tipoing.png
+│       ├── cat_B_posthoc_bonferroni.csv
+│       ├── cat_C_residuos_tipoalta_hospital.png
+│       ├── h1_dunn_heatmap_C16.png
+│       ├── h1_dunn_resultados_C16.csv
+│       ├── h1_normalidad_proc_C16.png
+│       ├── h2_confusion_matrix_C16.png
+│       ├── h2_forest_plot_OR_C16.png
+│       ├── h2_forest_plot_completo_C16.png
+│       ├── h2_logit_OR_C16.csv
+│       ├── h2_roc_curve_C16.png
+│       ├── h3_coef_ols_C16.png
+│       ├── h3_ols_coefs_C16.csv
+│       ├── h3_pred_vs_obs_C16.png
+│       ├── h3_residual_diagnostics_C16.png
+│       └── h3_transformacion_dias_C16.png
 ├── Referencias/                              # Documentos de referencia y notebooks guía
 │   ├── Requerimientos_Avance2_Analisis_de_Datos_fecha_entrega.pdf
 │   ├── documento-contexto.md
 │   ├── Notebook_Final_Regresion_Hospitalizaciones.ipynb
 │   ├── notebook_tests_categoricos_GRD (1).ipynb
-│   └── Clase 19-21 - Metodos Numericos.ipynb
-└── Test Estadístico Planteado/               # Pruebas estadísticas preliminares
-    └── outputs/
+│   ├── Clase 19 - Metodos Numericos.ipynb
+│   ├── Clase 20 - Metodos numéricos.ipynb
+│   └── Clase 21 - Metodos numéricos.ipynb
+└── .gitignore
 ```
+
+> **Nota:** Los archivos de datos (`.csv`, `.xlsx`, `.xls`) están excluidos del repositorio mediante `.gitignore` por su tamaño. Los archivos listados en `DATASET INICIAL/` y `DATASET-PROBLEMA8/` deben obtenerse desde la fuente oficial MINSAL/FONASA.
 
 ---
 
@@ -158,8 +187,7 @@ Nivel de significancia: **α = 0.05**.
 
 ## Notas
 
-- El análisis completo está contenido en el notebook `Avance2_Proyecto_Final.ipynb`.
-- Los scripts `theme_early_graphs.py` y `upgrade_graphs.py` son herramientas auxiliares para la actualización masiva de estilos y figuras dentro del notebook.
+- El análisis completo está contenido en el notebook `Avance 2/Avance2_Proyecto_AmatHerreraRodríguez.ipynb`.
 - Para dudas o solicitudes de acceso a los datos, contactar a los integrantes del equipo.
 
 ---
