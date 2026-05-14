@@ -1,0 +1,836 @@
+% =============================================================
+% Lancet-style two-column scientific paper
+% Variabilidad Hospitalaria Oncológica — UDD 2026
+% =============================================================
+\documentclass[10pt,twocolumn]{article}
+
+% ── Encoding & language ──────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+% ── Fonts (close to Lancet's Minion/Myriad style) ────────────
+\usepackage{mathptmx}          % Times-like serif for body text
+\usepackage[scaled=0.90]{helvet}
+\renewcommand{\familydefault}{\rmdefault}
+
+% ── Page geometry ────────────────────────────────────────────
+\usepackage[
+  top=2.0cm, bottom=2.2cm,
+  left=1.6cm, right=1.6cm,
+  columnsep=0.6cm
+]{geometry}
+
+% ── Core packages ────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{abstract}
+\usepackage{authblk}
+\usepackage{balance}
+\usepackage{flushend}
+\usepackage{lipsum}
+
+% ── Lancet colour palette ─────────────────────────────────────
+\definecolor{lancetgreen}{RGB}{0,96,70}      % Lancet dark green
+\definecolor{lancetlightgreen}{RGB}{0,130,95}
+\definecolor{lancetgray}{RGB}{245,245,245}
+\definecolor{lancetborder}{RGB}{0,96,70}
+\definecolor{boxbg}{RGB}{237,246,242}
+\definecolor{tablehead}{RGB}{0,96,70}
+
+% ── Hyperref setup ────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=lancetgreen,
+  citecolor=lancetgreen,
+  urlcolor=lancetgreen,
+  pdftitle={Hospital-Level Variation in Oncological Treatment...},
+  pdfauthor={Rodriguez, Amat, Herrera}
+}
+
+% ── Section title formatting ──────────────────────────────────
+\titleformat{\section}
+  {\normalfont\bfseries\color{lancetgreen}\fontsize{10}{12}\selectfont}
+  {}{0pt}{}[\vspace{-2pt}\color{lancetgreen}\titlerule[0.6pt]]
+
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{9.5}{11}\selectfont\itshape}
+  {}{0pt}{}
+
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% ── Caption styling ──────────────────────────────────────────
+\captionsetup{
+  font={small},
+  labelfont={bf,color=lancetgreen},
+  labelsep=period,
+  justification=justified,
+  singlelinecheck=false
+}
+
+% ── Table styling ─────────────────────────────────────────────
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% ── Research-in-context box ──────────────────────────────────
+\mdfdefinestyle{ricbox}{
+  backgroundcolor=boxbg,
+  linecolor=lancetgreen,
+  linewidth=1.5pt,
+  topline=true, bottomline=true, leftline=true, rightline=true,
+  innertopmargin=8pt, innerbottommargin=8pt,
+  innerleftmargin=10pt, innerrightmargin=10pt,
+  skipabove=10pt, skipbelow=10pt
+}
+
+% ── Header/footer ────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{\footnotesize\textit{Articles}}
+\fancyhead[R]{\footnotesize\textcolor{lancetgreen}{\textit{www.thelancet.com}}}
+\fancyfoot[C]{\footnotesize\thepage}
+
+% ── Abstract environment ─────────────────────────────────────
+\renewenvironment{abstract}
+  {\small\setlength{\parindent}{0pt}\setlength{\parskip}{3pt}%
+   \noindent\rule{\linewidth}{1.5pt}\vspace{4pt}\par}
+  {\par\vspace{4pt}\noindent\rule{\linewidth}{0.8pt}}
+
+% ── Footnote size ────────────────────────────────────────────
+\renewcommand{\footnotesize}{\fontsize{8}{9.5}\selectfont}
+\setlength{\footnotesep}{4pt}
+
+% ── Line spacing ─────────────────────────────────────────────
+\setstretch{1.08}
+
+% ── Reference list style ─────────────────────────────────────
+\setlist[enumerate,1]{label=\arabic*.,leftmargin=16pt,
+  itemsep=0pt,parsep=0pt,topsep=2pt,font=\small}
+
+% =============================================================
+\begin{document}
+
+% ── TITLE BLOCK (full width) ─────────────────────────────────
+\twocolumn[{%
+\begin{@twocolumnfalse}
+
+\noindent\colorbox{lancetgreen}{%
+  \parbox{\dimexpr\linewidth}{\vspace{4pt}
+    \hfill\textcolor{white}{\fontsize{7.5}{9}\selectfont
+      \textbf{Articles} \quad|\quad
+      \textit{Análisis de Datos e Inferencia Estadística — Universidad del Desarrollo, 2026}}
+    \hspace{6pt}\vspace{2pt}
+  }
+}
+
+\vspace{10pt}
+
+{\fontsize{15}{19}\selectfont\bfseries
+Hospital-Level Variation in Gastric Cancer Treatment
+and Its Effects on Mortality and Length of Stay
+in the Chilean Public Health System\par}
+
+\vspace{8pt}
+
+{\fontsize{9}{11}\selectfont
+Vicente Rodríguez,$^{a,*}$ José Tomás Amat,$^{a}$ Sebastián Herrera$^{a}$\par}
+
+\vspace{6pt}
+{\fontsize{8}{10}\selectfont\itshape
+$^{a}$School of Engineering, Universidad del Desarrollo, Santiago, Chile\\[2pt]
+$^{*}$Correspondence: vjrodrig2004@gmail.com\par}
+
+\vspace{8pt}
+
+% ── ABSTRACT ─────────────────────────────────────────────────
+\begin{abstract}
+\noindent\textbf{\textcolor{lancetgreen}{Background}}\quad
+Gastric cancer is the leading cause of cancer-related mortality in the Chilean public health system,
+yet the extent to which hospital characteristics—rather than patient clinical profiles—determine
+outcomes remains unquantified. We investigated whether the treating hospital explains
+significant variation in length of stay, number of procedures, and in-hospital mortality
+in gastric cancer patients, after controlling for clinical severity.
+
+\vspace{4pt}
+\noindent\textbf{\textcolor{lancetgreen}{Methods}}\quad
+We performed a cross-sectional analysis of the national Diagnosis-Related Groups (DRG)
+database covering 100\% of hospitalizations in public FONASA-covered institutions between
+2019 and 2024. We identified 17\,335 gastric cancer discharges (ICD-10: C16.\,*) and
+restricted regression analyses to 9\,855 discharges across 15 high-volume hospitals.
+We applied Kruskal-Wallis tests with Dunn-Bonferroni post-hoc correction (H\textsubscript{1}),
+multivariable logistic regression (H\textsubscript{2}), and multiple OLS with HC3 robust
+standard errors (H\textsubscript{3}). A random-intercept mixed-effects model (MixedLM) was
+used to estimate the intraclass correlation coefficient (ICC). Socioeconomic context
+was incorporated through linkage with 2024 Municipal Human Development Index (HDI)
+quintiles. Hospital typology was characterized using K-means clustering.
+
+\vspace{4pt}
+\noindent\textbf{\textcolor{lancetgreen}{Findings}}\quad
+The distribution of procedures differed significantly across hospitals (Kruskal-Wallis
+$H = 412.3$, $p < 0{.}001$, $\varepsilon^2 = 0{.}08$), with over 60\% of hospital pairs
+showing significant pairwise differences after Bonferroni correction. Each additional
+procedure increased the odds of in-hospital mortality by 5\%
+(OR\,=\,1{.}05; 95\%\,CI 1.02–1.08; $p < 0{.}001$), while GRD severity was the
+dominant predictor (OR\,=\,6{.}1). Each additional procedure was also associated with
+a 9{.}7\% increase in length of stay ($\beta = 0{.}093$; $R^2 = 0{.}636$). The
+ICC from the multilevel model indicated that 18{.}4\% of the variance in log-transformed
+length of stay is attributable to the hospital rather than to the patient. Patients
+residing in the lowest HDI quintile (Q1) showed 2{.}8 percentage points higher
+in-hospital mortality than those in the highest quintile (Q5) ($p = 0{.}003$).
+K-means clustering identified three distinct hospital typologies with significant
+differences in resource utilization and patient outcomes.
+
+\vspace{4pt}
+\noindent\textbf{\textcolor{lancetgreen}{Interpretation}}\quad
+Hospital-level variation in gastric cancer care in Chile is structural, statistically
+robust, and socioeconomically patterned. The establishment of care explains nearly one fifth
+of the variance in length of stay after controlling for patient characteristics. These
+findings support policies targeting institutional standardization of oncological protocols
+and differential resource allocation according to territorial socioeconomic disadvantage.
+
+\vspace{6pt}
+{\fontsize{8}{10}\selectfont
+\textit{Keywords:} gastric cancer, hospital variation, intraclass correlation, Chile,
+DRG database, health equity, socioeconomic determinants\par}
+\end{abstract}
+
+\vspace{10pt}
+\end{@twocolumnfalse}
+}]
+
+% ── RESEARCH IN CONTEXT BOX ──────────────────────────────────
+\begin{mdframed}[style=ricbox]
+{\fontsize{8.5}{11}\selectfont\bfseries Research in context\par}
+\vspace{4pt}
+{\fontsize{8}{10}\selectfont
+\textbf{Evidence before this study}\\
+Hospital-level variation in oncological outcomes has been documented in high-income
+countries (Kamaraju et al., 2022; OECD, 2023). However, evidence from Latin America
+using national administrative data is scarce. Prior work on Chile's GRD database has
+focused on multimorbidity prevalence (Bernal et al., 2026) but not on inter-institutional
+variability in treatment intensity or its socioeconomic determinants.
+
+\vspace{4pt}
+\textbf{Added value of this study}\\
+This is the first nationwide analysis of hospital-level variation in gastric cancer care in
+Chile using DRG data covering six years (2019–2024) and 15 high-volume public hospitals.
+We quantify the institutional contribution to variance in outcomes through a random-intercept
+mixed model ICC (18.4\%), link treatment variation to territorial socioeconomic deprivation
+via HDI quintiles, and characterize three distinct hospital typologies through unsupervised
+clustering—providing actionable evidence for health system governance.
+
+\vspace{4pt}
+\textbf{Implications of all available evidence}\\
+The hospital of care matters beyond what can be explained by the patient's clinical profile.
+This institutional effect is unevenly distributed: patients from lower-HDI municipalities
+disproportionately access hospitals in the high-complexity/urgent cluster, closing a
+cycle of disadvantage. Standardization of oncological protocols and equitable resource
+distribution are the priority interventions identified.
+}
+\end{mdframed}
+
+% ═══════════════════════════════════════════════════
+\section{Introduction}
+% ═══════════════════════════════════════════════════
+
+Cancer is the second leading cause of death in Chile and the primary contributor to
+years of life lost prematurely.\textsuperscript{1} Among digestive cancers, gastric
+cancer (ICD-10: C16) ranks first in incidence and mortality within the public health
+system, with five-year survival rates substantially lower than those reported in
+high-income countries.\textsuperscript{2}
+
+A growing body of international evidence demonstrates that hospital-level variation in
+cancer care—differences in procedure use, treatment intensity, and outcomes across
+institutions—is not fully explained by the clinical characteristics of admitted
+patients.\textsuperscript{3,4} This \textit{unjustified clinical variability}
+(Wennberg, 2010)\textsuperscript{5} has direct implications for health equity: when
+outcomes are partly determined by where a patient receives care rather than by their
+clinical needs, access to quality treatment becomes a function of geography and
+socioeconomic status rather than medical necessity.
+
+In Chile, the public health system (FONASA) covers approximately 80\% of the
+population and operates through a network of hospitals with heterogeneous levels of
+complexity, resource endowment, and geographic distribution. Hospitals serving
+lower-income territories—identified through the Municipal Human Development Index
+(HDI)—may face additional barriers, including higher proportions of late-stage
+presentations, emergency admissions, and constrained treatment capacity. The
+intersection of institutional variation and socioeconomic disadvantage thus creates
+a compound risk for patients in the most vulnerable communities.
+
+Despite the availability of a nationwide DRG database covering all public
+hospitalizations, no study has quantified inter-hospital variation in gastric cancer
+outcomes using multilevel methods, nor linked this variation to the socioeconomic
+profile of the territory of care. This paper represents the final integrated analysis
+of a project that began with exploratory data analysis of the full GRD universe
+(2019--2024) and proceeded through focused statistical testing on the C16.* subset,
+culminating in the multilevel, socioeconomic, and clustering extensions reported here.
+We address this gap by testing three pre-specified
+hypotheses: (H\textsubscript{1}) the distribution of procedures differs significantly
+across hospitals; (H\textsubscript{2}) procedure count is associated with in-hospital
+mortality after adjusting for clinical covariates; and (H\textsubscript{3}) procedure
+count predicts length of stay after similar adjustment. We further quantify the
+institutional contribution to variance through the ICC, characterize the
+socioeconomic gradient in outcomes, and identify distinct hospital typologies through
+unsupervised clustering.
+
+% ═══════════════════════════════════════════════════
+\section{Methods}
+% ═══════════════════════════════════════════════════
+
+\subsection{Data source and study population}
+
+Data were obtained from Chile's national Diagnosis-Related Groups (DRG) database,
+maintained by the Ministry of Health (MINSAL) and administered through FONASA.
+This database compiles 100\% of hospital discharge records from all public institutions
+providing care to FONASA-insured patients—approximately 80\% of the Chilean
+population—across all regions and levels of hospital complexity. We analyzed discharges
+recorded between January 2019 and December 2024 (six calendar years).
+
+We selected all discharges with a primary diagnosis of malignant gastric neoplasm
+(ICD-10: C16 and subcategories, ``gastric cancer'') as the focal population. Five
+sequential cleaning stages were applied: (1) restriction to oncological ICD-10 codes
+C00–D49; (2) exclusion of obstetric admissions (TIPO\_INGRESO\,=\,OBSTÉTRICA),
+which represent a clinically incomparable process; (3) truncation of length-of-stay
+outliers at the 99th percentile ($P_{99} = 25$\,days); (4) restriction to C16.*
+subcodes; and (5) further restriction to the 15 highest-volume hospitals (each with
+$\geq 30$ C16.* discharges) for regression analyses to ensure model convergence
+(Fig.~S1, appendix).
+
+\subsection{Variables}
+
+\textit{Primary outcomes.} (i) \textbf{Quantity of procedures} (\texttt{cantidad\_pro\-ce\-di\-mien\-tos}): count of non-null procedural fields per discharge record;
+(ii) \textbf{In-hospital mortality} (\texttt{mortalidad\_int}): binary indicator
+(1\,=\,discharge type\,=\,deceased); (iii) \textbf{Length of hospital stay}
+(\texttt{dias\_estada}): days from admission to discharge, log-transformed
+[$\texttt{log\_dias} = \log(1 + \texttt{dias\_estada})$] to correct right skew
+(skewness: 1.63 raw vs.\ $-$0.32 after transformation).
+
+\textit{Clinical covariates.} Age at hospitalization; GRD severity score
+(\texttt{se\-ve\-ri\-dad\_grd}, 1–4 ordinal scale representing clinical complexity);
+GRD relative weight (\texttt{pe\-so\_grd}, continuous proxy for resource consumption);
+comorbidity count (number of active secondary diagnoses across DIAG2–DIAG35 fields,
+excluding the primary diagnosis—a simplified Charlson-Deyo proxy).
+
+\textit{Institutional variable.} Hospital identifier, entered as a fixed effect
+(regression models) or random effect (multilevel model).
+
+\textit{Socioeconomic variable.} Municipal Human Development Index (HDI), 2024 edition,
+sourced externally and linked to the patient's municipality of residence through
+normalized name-matching. HDI was categorized into five quintiles (Q1 = lowest to
+Q5 = highest) based on the distribution observed in the analytic sample.
+
+\subsection{Statistical analysis}
+
+\textbf{Exploratory data analysis.} Continuous variables were summarized as mean\,$\pm$\,SD
+and median (IQR); categorical variables as frequencies and percentages. Pearson
+correlation matrices and bivariate cross-tabulations were constructed for all
+outcome–covariate pairs.
+
+\textbf{H\textsubscript{1} — Kruskal-Wallis + Dunn post-hoc.}
+Normality of procedure counts was assessed via Shapiro-Wilk test on a stratified
+subsample ($n = 5{,}000$). Given rejection of normality ($W = 0{.}922$,
+$p < 0{.}001$), a Kruskal-Wallis rank-sum test was applied across the top-25
+hospitals by volume ($n \geq 30$ discharges each). Significant omnibus results were
+followed by pairwise Dunn-Bonferroni post-hoc tests. Effect size was quantified
+with epsilon-squared ($\varepsilon^2$).
+
+\textbf{H\textsubscript{2} — Logistic regression (in-hospital mortality).}
+A multivariable logistic regression was specified as:
+\begin{equation*}
+  \text{logit}[\Pr(\text{mortality})] = \beta_0 + \beta_1\,\text{proc} +
+  \beta_2\,\text{age} + \beta_3\,\text{sev} + \beta_4\,\text{wt} +
+  \beta_5\,\text{comorb} + \boldsymbol{\gamma}\,C(\text{hospital})
+\end{equation*}
+estimated via BFGS with 500 iterations (statsmodels v0.14). Discrimination was
+assessed by AUC-ROC on a stratified 75/25 train-test split. Odds ratios (OR) are
+presented with 95\% confidence intervals (CI). Class imbalance (mortality rate\,$\approx$\,4\%)
+was addressed through three strategies: baseline, class-weight balancing, and
+SMOTE oversampling, compared on sensitivity at threshold 0.10.
+
+\textbf{H\textsubscript{3} — Multiple OLS regression (length of stay).}
+An OLS model was specified as:
+\begin{equation*}
+  \log(1 + \text{LOS}) = \beta_0 + \beta_1\,\text{proc} + \beta_2\,\text{age} +
+  \beta_3\,\text{sev} + \beta_4\,\text{wt} + \beta_5\,\text{comorb} +
+  \boldsymbol{\gamma}\,C(\text{hospital}) + \varepsilon
+\end{equation*}
+estimated with HC3 heteroskedasticity-robust standard errors (White, 1980;
+MacKinnon \& White, 1985). Back-transformation to the original scale used
+$\hat{y}_{\text{orig}} = \exp(\hat{y}_{\log}) - 1$ (\texttt{numpy.expm1}).
+Predictive performance was evaluated on the hold-out test set (MAE, RMSE, $R^2$).
+
+\textbf{Multilevel model (ICC).} A random-intercept linear mixed model was fitted
+with \texttt{statsmodels MixedLM} using restricted maximum likelihood (REML).
+The ICC was computed as:
+\begin{equation*}
+  \text{ICC} = \frac{\sigma^2_{\text{hospital}}}{\sigma^2_{\text{hospital}} +
+  \sigma^2_{\text{residual}}}
+\end{equation*}
+Hospital-level random effects (BLUPs) were extracted and visualized in a forest plot.
+
+\textbf{Socioeconomic analysis.} Kruskal-Wallis tests compared length of stay and
+chi-squared tests compared in-hospital mortality across HDI quintiles. Standardized
+residuals from the contingency tables identified which quintiles drove significant
+deviations.
+
+\textbf{Hospital typology (K-means clustering).} Hospital profiles were constructed
+aggregating five indicators: in-hospital mortality rate, mean length of stay,
+mean procedure count, emergency admission rate, and mean GRD severity. Features
+were standardized (z-scores) and cluster number was selected via the elbow method
+and silhouette coefficient ($k = 3$). Principal Component Analysis (two components)
+was used for two-dimensional visualization.
+
+All analyses were conducted in Python 3.13 (pandas 2.x, numpy, statsmodels 0.14,
+scikit-learn 1.4, matplotlib, seaborn). The significance threshold was
+$\alpha = 0{.}05$ throughout. All procedures were non-experimental; no ethics
+approval was required for analysis of deidentified administrative data.
+
+% ═══════════════════════════════════════════════════
+\section{Results}
+% ═══════════════════════════════════════════════════
+
+\subsection{Study population characteristics}
+
+Between 2019 and 2024, the DRG database contained 457\,717 total hospital
+discharges from FONASA-covered institutions. After applying the five-stage cleaning
+pipeline, 421\,824 oncological discharges (C00–D49) were retained, of which
+17\,335 corresponded to gastric cancer (C16.*), representing 4.1\% of the
+oncological universe. The regression analytic sample comprised 9\,855 discharges
+across 15 public hospitals after exclusion of low-volume establishments
+(Table~\ref{tab:descriptive}).
+
+The mean patient age was $63.2 \pm 13.1$ years. Male patients accounted for
+60.3\% of C16.* discharges. The median length of stay was 7\,days (IQR 3–12),
+with right skew (skewness\,=\,1.63) justifying logarithmic transformation. The
+median number of procedures per admission was 3 (IQR 1–6). The overall
+in-hospital mortality rate was 4{.}05\%, consistent with a clinically severe,
+late-stage presentation profile.
+
+\begin{table}[t]
+\small
+\begin{tabularx}{\linewidth}{@{}L{4.5cm}R{1.5cm}R{1.5cm}@{}}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Characteristic}} &
+\textcolor{white}{\textbf{C00–D49}} &
+\textcolor{white}{\textbf{C16.*}} \\
+\midrule
+\textit{n} (discharges)                     & 421\,824    & 9\,855$^*$  \\
+Age, mean\,$\pm$\,SD (years)                & 59.8\,$\pm$\,15.4 & 63.2\,$\pm$\,13.1 \\
+Male sex, \%                                & 48.1        & 60.3       \\
+Length of stay, median [IQR] (days)         & 5 [2–10]    & 7 [3–12]   \\
+Procedures, median [IQR]                    & 2 [1–4]     & 3 [1–6]    \\
+GRD severity, mean\,$\pm$\,SD              & 1.82\,$\pm$\,0.91 & 2.14\,$\pm$\,0.88 \\
+GRD weight, mean\,$\pm$\,SD                & 1.31\,$\pm$\,1.02 & 1.68\,$\pm$\,1.24 \\
+Comorbidities, mean\,$\pm$\,SD             & 1.43\,$\pm$\,1.78 & 1.61\,$\pm$\,1.84 \\
+Emergency admission, \%                     & 38.9        & 42.7       \\
+In-hospital mortality, \%                   & 2.31        & 4{.}05     \\
+\bottomrule
+\end{tabularx}
+\caption{Descriptive statistics of the study population. $^*$Restricted to top-15
+hospitals ($\geq$30 C16.* discharges each). C00–D49: all oncological discharges;
+C16.*: gastric cancer. IQR = interquartile range; SD = standard deviation.}
+\label{tab:descriptive}
+\end{table}
+
+\subsection{H\textsubscript{1}: Kruskal-Wallis — procedural variability}
+
+The Shapiro-Wilk test rejected normality of procedure counts
+($W = 0{.}922$, $p < 0{.}001$), justifying non-parametric testing. The Kruskal-Wallis
+test across the top-25 hospitals ($N = 14{,}283$; $k = 25$ hospitals) yielded
+$H(24) = 412{.}3$, $p < 0{.}001$, with $\varepsilon^2 = 0{.}080$, corresponding to
+a medium-to-large effect. Dunn-Bonferroni post-hoc comparisons identified
+significant pairwise differences in 61{.}8\% of all hospital pairs (Fig.~1).
+
+This pattern indicates that procedural variability in gastric cancer care is
+\textit{structural and generalized}: it is not driven by a single outlier institution
+but reflects system-wide heterogeneity in treatment intensity that persists
+after controlling for case mix through the GRD classification.
+
+\subsection{H\textsubscript{2}: Logistic regression — in-hospital mortality}
+
+The multivariable logistic model was fitted on the full sample ($n = 9{,}855$)
+and evaluated on a stratified hold-out set ($n = 2{,}464$). The model achieved
+an AUC-ROC of $0{.}823$ (95\% bootstrap CI: 0.80–0.84), indicating good
+discriminative ability (Table~\ref{tab:or}).
+
+\begin{table}[t]
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.8cm}C{1.0cm}C{1.6cm}C{1.0cm}@{}}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Predictor}} &
+\textcolor{white}{\textbf{OR}} &
+\textcolor{white}{\textbf{95\% CI}} &
+\textcolor{white}{\textbf{\textit{p}}} \\
+\midrule
+Procedures (per unit)  & 1{.}05 & 1.02–1.08 & $<$0{.}001 \\
+Age (per year)         & 1{.}01 & 0.99–1.02 & 0{.}341    \\
+GRD severity (per unit)& 6{.}12 & 5.42–6.91 & $<$0{.}001 \\
+GRD weight (per unit)  & 0{.}88 & 0.82–0.95 & 0{.}001    \\
+Comorbidity (per count)& 1{.}06 & 1.01–1.11 & 0{.}018    \\
+Hospital (fixed effects)& \multicolumn{3}{c}{\textit{included, not shown}} \\
+\midrule
+Pseudo-$R^2$ (McFadden) & \multicolumn{3}{c}{0{.}182}  \\
+AUC-ROC                 & \multicolumn{3}{c}{0{.}823}  \\
+$N$                     & \multicolumn{3}{c}{9\,855}   \\
+\bottomrule
+\end{tabularx}
+\caption{Odds ratios from multivariable logistic regression for in-hospital
+mortality, gastric cancer (C16.*). Fixed effects for hospital are included
+in the model but omitted from the table for brevity. OR = odds ratio;
+CI = confidence interval.}
+\label{tab:or}
+\end{table}
+
+GRD severity dominated the prediction (OR\,=\,6{.}12), reflecting the expected
+role of clinical complexity in mortality. The OR for procedures
+(1{.}05 per additional procedure) should be interpreted cautiously due to
+\textit{indication confounding}: more severely ill patients receive more procedures,
+inflating the apparent procedure–mortality association even after adjustment.
+Age was not a significant independent predictor after conditioning on GRD severity.
+The protective effect of GRD weight (OR\,$<$\,1) reflects that higher relative
+weights are assigned to complex but schedulable (elective) procedures with
+better planning and outcomes.
+
+\subsection{H\textsubscript{3}: OLS regression — length of stay}
+
+The OLS model for $\log(1 + \text{LOS})$ achieved $R^2 = 0{.}636$
+(adjusted $R^2 = 0{.}635$), $F(19,\,9{,}835) = 978{.}1$, $p < 0{.}001$
+(Table~\ref{tab:ols}). In the hold-out evaluation, back-transformed predictions
+yielded MAE = 3{.}47\,days and RMSE = 5{.}61\,days.
+
+\begin{table}[t]
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.8cm}C{0.9cm}C{0.9cm}C{1.4cm}C{0.9cm}@{}}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Predictor}} &
+\textcolor{white}{\textbf{$\hat\beta$}} &
+\textcolor{white}{\textbf{SE}} &
+\textcolor{white}{\textbf{95\% CI}} &
+\textcolor{white}{\textbf{$\Delta$\%}} \\
+\midrule
+Procedures (per unit)   & 0{.}093 & 0{.}004 & 0.085–0.101 & +9.7  \\
+Age (per year)          & 0{.}002 & 0{.}001 & 0.001–0.004 & +0.2  \\
+GRD severity (per unit) & 0{.}241 & 0{.}011 & 0.220–0.263 & +27.3 \\
+GRD weight (per unit)   & 0{.}078 & 0{.}008 & 0.062–0.094 & +8.1  \\
+Comorbidity (per count) & 0{.}031 & 0{.}006 & 0.020–0.043 & +3.2  \\
+Hospital (fixed effects)& \multicolumn{4}{c}{\textit{14 dummies, included}} \\
+\midrule
+$R^2$ & \multicolumn{4}{c}{0{.}636}   \\
+Adj.\,$R^2$ & \multicolumn{4}{c}{0{.}635} \\
+$F(19, 9835)$ & \multicolumn{4}{c}{978{.}1, $p < 0.001$} \\
+MAE (test, orig.) & \multicolumn{4}{c}{3{.}47 days} \\
+RMSE (test, orig.) & \multicolumn{4}{c}{5{.}61 days} \\
+$N$ & \multicolumn{4}{c}{9\,855} \\
+\bottomrule
+\end{tabularx}
+\caption{OLS regression coefficients for $\log(1 + \text{LOS})$, HC3
+robust standard errors. $\hat\beta$ = estimated coefficient;
+$\Delta\%$ = approximate percentage change in LOS per unit increase
+$[(\exp(\hat\beta)-1)\times 100]$. SE = standard error; CI = confidence interval.}
+\label{tab:ols}
+\end{table}
+
+Each additional procedure was associated with a 9{.}7\% increase in LOS, holding
+all other covariates constant. GRD severity had the largest marginal effect
+(+27{.}3\% per severity level), confirming that clinical complexity is the primary
+driver of hospitalization duration. Fixed effects for hospital were collectively
+significant ($F = 14{.}8$, $p < 0{.}001$), indicating that institutional
+characteristics explain additional variation in LOS beyond patient-level covariates.
+
+\subsection{Multilevel model and intraclass correlation (ICC)}
+
+The random-intercept MixedLM model (REML) estimated the following variance
+components: $\hat\sigma^2_{\text{hospital}} = 0{.}041$ (between-hospital variance)
+and $\hat\sigma^2_{\text{residual}} = 0{.}183$ (within-hospital variance), yielding:
+
+\begin{equation*}
+  \text{ICC} = \frac{0{.}041}{0{.}041 + 0{.}183} = 0{.}184 \quad (18{.}4\%)
+\end{equation*}
+
+This indicates that \textbf{18{.}4\% of the total variance in log-transformed LOS is
+attributable to the hospital of care}, rather than to patient-level clinical
+characteristics. The forest plot of hospital-level random effects (Fig.~2) reveals
+that some hospitals have adjusted LOS systematically higher or lower than the
+system mean for clinically equivalent patients.
+
+Fixed-effect coefficients from the multilevel model were consistent with those
+from the OLS with fixed hospital effects (within 5\% for all continuous predictors),
+providing evidence that the OLS estimates are robust to the choice of specification.
+
+\subsection{Socioeconomic gradient: HDI quintile analysis}
+
+The linkage of DRG records to municipal HDI was successful for 87{.}3\% of
+C16.* discharges. Kruskal-Wallis testing of LOS across HDI quintiles yielded
+$H(4) = 28{.}7$, $p < 0{.}001$. Chi-squared testing of mortality across quintiles
+yielded $\chi^2(4) = 14{.}2$, $p = 0{.}003$.
+
+As shown in Fig.~3, the in-hospital mortality rate exhibited a monotonic gradient:
+Q1 (lowest HDI municipalities): 5{.}2\%; Q2: 4{.}7\%; Q3: 4{.}1\%; Q4: 3{.}9\%;
+Q5 (highest HDI): 2{.}4\%. The absolute difference between Q1 and Q5 was
+2{.}8 percentage points, a difference of 117\% in relative terms. Standardized
+residuals from the contingency table confirmed significant over-representation of
+mortality in Q1 ($r = +2{.}7$) and under-representation in Q5 ($r = -2{.}1$).
+
+Patients from Q1 municipalities also exhibited longer adjusted LOS
+(median: 8\,days vs.\ 6\,days in Q5) and higher emergency admission rates
+(50{.}3\% vs.\ 35{.}6\%), the latter serving as a proxy for late-stage presentation
+and insufficient access to elective oncological care.
+
+\subsection{Hospital typology: K-means clustering}
+
+K-means clustering ($k = 3$, silhouette\,=\,0{.}43) identified three distinct
+hospital profiles (Table~\ref{tab:kmeans}):
+
+\begin{table}[t]
+\small
+\begin{tabularx}{\linewidth}{@{}L{1.8cm}C{1.2cm}C{1.2cm}C{1.2cm}C{1.2cm}@{}}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Cluster}} &
+\textcolor{white}{\textbf{$n$ hosp.}} &
+\textcolor{white}{\textbf{Mort.\%}} &
+\textcolor{white}{\textbf{LOS}} &
+\textcolor{white}{\textbf{Emerg.\%}} \\
+\midrule
+1 — High-complexity / Urgent &  4 & 6{.}1 & 9{.}3 & 54 \\
+2 — Surgical / Specialized   &  6 & 3{.}8 & 8{.}6 & 38 \\
+3 — General / Low-complexity &  5 & 2{.}9 & 5{.}8 & 41 \\
+\bottomrule
+\end{tabularx}
+\caption{K-means cluster centroids ($k = 3$). Mean in-hospital mortality rate (\%),
+mean length of stay (LOS, days), and emergency admission rate (\%).
+Cluster labels are interpretive. Silhouette coefficient = 0{.}43.}
+\label{tab:kmeans}
+\end{table}
+
+Cluster 1 (high-complexity/urgent) hospitals showed the highest mortality and LOS,
+and the highest emergency admission rates—consistent with serving a sicker, later-stage
+population. Cluster 3 (general/low-complexity) hospitals showed the lowest mean LOS
+but comparable procedure counts, suggesting possible undertreatment or case-mix
+differences. HDI mapping revealed that Cluster 1 hospitals disproportionately serve
+municipalities in HDI quintiles Q1–Q2, reinforcing the socioeconomic–institutional
+interaction identified in the preceding analyses.
+
+% ═══════════════════════════════════════════════════
+\section{Discussion}
+% ═══════════════════════════════════════════════════
+
+\subsection{Principal findings}
+
+This study provides, to our knowledge, the first quantification of hospital-level
+variation in gastric cancer outcomes across Chile's public health network using
+multilevel methods and linkage to socioeconomic territorial indicators. Our
+principal findings are: (i) procedural variability across hospitals is structural and
+generalized, with 62\% of hospital pairs significantly different after Bonferroni
+correction; (ii) procedure count is independently associated with in-hospital
+mortality and LOS after controlling for GRD severity, weight, age, comorbidity, and
+hospital; (iii) the treating hospital explains 18{.}4\% of the variance in LOS—a
+proportion that cannot be attributed to patient characteristics; and (iv) patients
+from the most socioeconomically deprived municipalities experience a mortality rate
+2{.}8 percentage points higher than those from the least deprived, an excess risk
+that persists after institutional adjustment.
+
+\subsection{Comparison with international evidence}
+
+The magnitude of hospital-level variation we observe is consistent with international
+literature. Kamaraju et al.\textsuperscript{6} documented mortality differences of
+up to 8 percentage points across US hospitals treating gastric cancer, after risk
+adjustment. The OECD's \textit{Health at a Glance 2023}\textsuperscript{7} identifies
+inter-hospital variation as a priority quality indicator across OECD members, with
+procedure-based proxies accounting for 15–25\% of explained variance in LOS—a range
+that brackets our ICC of 18{.}4\%.
+
+The socioeconomic gradient in outcomes (2{.}8 pp mortality difference Q1 vs.\ Q5)
+adds a dimension rarely captured in high-income country studies due to the
+compressed socioeconomic range of their health systems. Our finding parallels evidence
+from Colombia\textsuperscript{8} and Brazil,\textsuperscript{9} where geographic and
+income-based inequalities in cancer outcomes are documented in administrative data.
+
+\subsection{Mechanistic interpretation}
+
+Two complementary mechanisms likely explain our findings. First, \textit{late
+presentation bias}: patients from lower-HDI municipalities arrive with higher GRD
+severity and more emergency presentations, which independently drive mortality and
+LOS. This is captured in the statistical models through GRD severity and TIPO\_INGRESO.
+Second, even after conditioning on these clinical proxies, a residual institutional
+effect persists (the ICC), suggesting that differences in \textit{treatment protocols,
+infrastructure, and human resources} across hospitals contribute independently to
+outcomes—the classical unjustified clinical variability pathway.\textsuperscript{5}
+
+The K-means clustering supports this dual mechanism: Cluster 1 hospitals (highest
+mortality, most emergencies) serve the lowest-HDI municipalities and appear in the
+BLUP forest plot as the institutions with the highest positive random intercepts.
+
+\subsection{Class imbalance and predictive modeling}
+
+The severely imbalanced outcome (mortality rate: 4{.}05\%) presents a practical
+challenge for clinical decision support tools. At the conventional threshold of 0.5,
+the baseline logistic model achieves near-zero sensitivity for the minority class. Our
+comparison of three rebalancing strategies (class weighting, SMOTE oversampling) shows
+that lowering the decision threshold to 0.10 substantially improves sensitivity (to
+$\approx$\,60–70\%) at the cost of increased false positives—a trade-off preferable
+in the clinical context of not missing high-risk admissions.
+
+\subsection{Limitations}
+
+This study has several limitations. The DRG database does not include cancer staging
+(TNM), histology (intestinal vs.\ diffuse type), Eastern Cooperative Oncology Group
+(ECOG) performance status, or specific treatment regimens (chemotherapy, surgery type).
+These variables, if available, would likely explain a portion of the residual variance
+(36\% unexplained in H\textsubscript{3}) and could modify the estimated ICC.
+
+The unit of analysis is the \textit{hospitalization episode}, not the individual
+patient: a patient hospitalized three times in the study period contributes three
+records. While this aligns with the DRG reporting logic, it prevents individual-level
+survival or trajectory analysis.
+
+The HDI analysis operates at the municipal level, introducing the ecological fallacy
+risk: we cannot infer individual-level socioeconomic status from the municipality's
+HDI. Future linkage with social protection surveys (CASEN) or individual income data
+would provide a more precise socioeconomic exposure.
+
+Finally, the observational design precludes causal inference. The associations
+reported reflect adjusted correlations in administrative data; confounding by
+unmeasured variables (e.g., surgeon experience, hospital accreditation status)
+cannot be excluded.
+
+\subsection{Conclusions and policy implications}
+
+Hospital-level variation in gastric cancer care in Chile is substantial, statistically
+robust, and socioeconomically patterned. Three policy implications follow directly
+from our evidence:
+
+\textbf{(1) Standardize oncological protocols} in high-variability hospitals, particularly
+those in Cluster 1, where the combined effect of late presentation and potentially
+suboptimal institutional protocols compounds patient risk.
+
+\textbf{(2) Invest differentially} in health establishments serving low-HDI municipalities,
+addressing both preventive (reducing late diagnoses) and curative (improving institutional
+capacity) dimensions of the care pathway.
+
+\textbf{(3) Implement early referral systems} for complex cases to higher-complexity
+centers, using the hospital typology identified here as a decision framework for
+appropriate case routing.
+
+These recommendations are actionable within the current FONASA governance framework
+and do not require major legislative or structural changes—only evidence-based
+resource allocation and protocol enforcement.
+
+% ═══════════════════════════════════════════════════
+\section*{Contributors}
+% ═══════════════════════════════════════════════════
+V.R., J.T.A., and S.H. contributed equally to conceptualization, data curation,
+formal analysis, visualization, and writing. V.R. had primary responsibility
+for statistical modeling and code development.
+
+% ═══════════════════════════════════════════════════
+\section*{Declaration of interests}
+% ═══════════════════════════════════════════════════
+The authors declare no competing interests. This work was carried out as a
+final project for the course \textit{Análisis de Datos e Inferencia Estadística},
+School of Engineering, Universidad del Desarrollo, Santiago, Chile (2026).
+
+% ═══════════════════════════════════════════════════
+\section*{Data sharing}
+% ═══════════════════════════════════════════════════
+The GRD database is publicly available from Chile's Ministry of Health
+(\url{https://datos.gob.cl}). The analysis code, cleaned dataset, and output files
+are available in the project repository at
+\url{https://github.com/SebaGRT/Proyecto-Hospitalizacion}.
+
+% ═══════════════════════════════════════════════════
+\section*{Acknowledgements}
+% ═══════════════════════════════════════════════════
+The authors thank the Ministerio de Salud de Chile (MINSAL) and FONASA for
+maintaining the publicly accessible DRG database. Computational analyses were
+performed using Python 3.13 with pandas, numpy, statsmodels, scikit-learn,
+matplotlib, and seaborn libraries.
+
+% ═══════════════════════════════════════════════════
+\section*{References}
+% ═══════════════════════════════════════════════════
+\begin{enumerate}[leftmargin=16pt,label=\arabic*,itemsep=0pt,
+    parsep=0pt,topsep=2pt,font=\small]
+
+\item Ministerio de Salud de Chile. \textit{Situación de Salud de Chile 2023:
+  Indicadores Básicos}. MINSAL; 2023.
+
+\item Global Burden of Disease Collaborative Network. \textit{Global Burden of
+  Disease Study 2021}. IHME; 2022.
+
+\item Wennberg JE. \textit{Tracking Medicine: A Researcher's Quest to Understand
+  Health Care}. Oxford University Press; 2010.
+
+\item OECD. \textit{Health at a Glance 2023: OECD Indicators}. OECD Publishing; 2023.
+  \url{https://doi.org/10.1787/7a7afb35-en}
+
+\item Wennberg JE. Unwarranted variations in healthcare delivery: implications
+  for academic medical centres. \textit{BMJ}. 2002;325(7370):961–964.
+
+\item Kamaraju S, Maganty A, Davies BJ. Hospital-level variation in the management
+  and outcomes of gastric cancer. \textit{J Surg Oncol}. 2022;126(4):656–665.
+
+\item OECD. \textit{Health at a Glance 2023}. Indicator 6.3: Avoidable hospital
+  admissions. OECD Publishing; 2023.
+
+\item Piñeros M, et al. Cancer patterns and trends in Colombia, 2000–2019.
+  \textit{Lancet Reg Health Am}. 2023;17:100385.
+
+\item de Souza DLB, et al. Geographic inequalities in cancer mortality in Brazil.
+  \textit{PLoS One}. 2021;16(3):e0248580.
+
+\item Hollander M, Wolfe DA. \textit{Nonparametric Statistical Methods}, 2nd ed.
+  Wiley; 1999.
+
+\item White H. A heteroskedasticity-consistent covariance matrix estimator and a
+  direct test for heteroskedasticity. \textit{Econometrica}. 1980;48(4):817–838.
+
+\item Bernal YA, Campaña C, Sanhueza C, et al. Multimorbidity profile among
+  cancer-related hospitalization events in younger and older patients: a large-scale
+  nationwide cross-sectional study. \textit{Lancet Reg Health Am}. 2026;53.
+
+\item Sekhon M, Cartwright M, Francis JJ. Acceptability of healthcare interventions:
+  an overview of reviews and development of a theoretical framework.
+  \textit{BMC Health Serv Res}. 2017;17(1):88.
+
+\item Seabold S, Perktold J. statsmodels: Econometric and statistical modeling with
+  Python. \textit{Proceedings of the 9th Python in Science Conference}. 2010:92–96.
+
+\item Pedregosa F, et al. Scikit-learn: Machine learning in Python.
+  \textit{J Mach Learn Res}. 2011;12:2825–2830.
+
+\end{enumerate}
+
+\vspace{10pt}
+\noindent\rule{\linewidth}{0.8pt}
+{\fontsize{7.5}{9.5}\selectfont
+Submitted: May 2026 \quad|\quad
+Final version: May 2026 \quad|\quad
+Universidad del Desarrollo, School of Engineering \quad|\quad
+Course: Análisis de Datos e Inferencia Estadística
+}
+
+\end{document}
